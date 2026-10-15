@@ -1,0 +1,5 @@
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "stewdio"
+      description: "Inspect and edit Stewdio Files"

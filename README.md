@@ -12,6 +12,14 @@ connection, and a host that supports remote MCP servers and OAuth. File access i
 limited to your own Files across active organizations. Creating and editing Files
 is subject to your Stewdio plan. The Stewdio desktop application is not required.
 
+The plugin bundles one [stewdio skill](skills/stewdio/SKILL.md) with local
+references for File XML, subtree editing, inputs, clips, animations, and Canvas
+renderer scripts, including drawing, fonts, and bound File assets.
+
+Install the plugin to make this skill available in hosts that support skills.
+Connecting only the remote MCP server exposes its tools without installing the
+skill; install the skill folder separately if your host supports that.
+
 ### Claude Code
 
 In a Claude Code session (v2.1.275 or later), run:
@@ -30,8 +38,8 @@ Install the Stewdio plugin and connect its MCP server. For development, connect
 your deployed test endpoint as a custom MCP server and refresh the connection
 after changing tool metadata or resources.
 
-In an MCP Apps host, `view_files` opens the complete File library with thumbnails,
-search, and a **New File** button. Select a File to open its editor. Supported
+In an MCP Apps host, `view_files` opens the File library with thumbnails, server-side
+search, **Load more**, and a **New File** button. Select a File to open its editor. Supported
 ChatGPT surfaces also expose **Stewdio** in the sidebar and conversation panel.
 **Add to chat** attaches the current selection; ordinary selection changes supply background
 context. Removing an attachment keeps it removed until you explicitly attach
@@ -50,8 +58,13 @@ complete OAuth sign-in, and enable the connector for your conversation. See
 
 Other hosts can connect to the same URL using Streamable HTTP and OAuth. Hosts
 without MCP Apps can still list, create, inspect, and edit Files through tools.
-The embedded File library supports filtering by name; `list_files` returns all
-accessible Files and has no search or pagination parameters.
+Both `list_files` and `view_files` accept `query` for a case-insensitive File name
+search, `organizationId` to filter by active organization, and `limit` (default
+25, maximum 100). Results are ordered by most recently updated first. Pass the
+returned `nextCursor` as `cursor` with the same filters to load another page;
+`nextCursor: null` means there are no more results. For example,
+`list_files({ query: "Launch", limit: 25 })` finds matching Files without loading
+the entire library.
 
 ## Try it
 
@@ -66,8 +79,7 @@ XML. Edits in the embedded editor save live.
 
 | Tool                    | Purpose                                                                                     |
 | ----------------------- | ------------------------------------------------------------------------------------------- |
-| `read_documentation`    | Read Stewdio's XML or Canvas authoring reference.                                           |
-| `list_files`            | List your Files and their organizations.                                                    |
+| `list_files`            | Search and paginate your Files and their organizations.                                     |
 | `create_file`           | Create a File with an initial Page.                                                         |
 | `read_xml`              | Read a File or node subtree as XML.                                                         |
 | `write_xml`             | Create or update a node subtree using XML.                                                  |
@@ -78,12 +90,13 @@ XML. Edits in the embedded editor save live.
 
 ## Execution, network access, and data
 
-The plugin configures a remote server; it installs no local server, hooks, scripts,
-or package dependencies. Your host sends tool arguments and OAuth credentials to
+The plugin bundles one skill and configures a remote server; it installs no
+local server, hooks, scripts, or package dependencies. Your host sends tool
+arguments and OAuth credentials to
 `https://api.stewdio.ai/mcp`. Arguments can include File and organization IDs, File
-names, XML, and Canvas scripts. The server returns authoring documentation, File
-metadata, requested File content, and UI resources to the host. File writes are
-stored by Stewdio. Sign-in uses WorkOS through `https://signin.stewdio.ai`.
+names, XML, and Canvas scripts. The server returns File metadata, requested File
+content, and UI resources to the host. File writes are stored by Stewdio. Sign-in
+uses WorkOS through `https://signin.stewdio.ai`.
 
 In MCP Apps hosts, the embedded UI runs in the host's sandbox, connects to
 `https://api.stewdio.ai` and `wss://api.stewdio.ai` for authorized File operations
