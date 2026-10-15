@@ -1,0 +1,30 @@
+{
+  "name": "stewdio",
+  "version": "0.1.9",
+  "description": "Inspect and edit Stewdio Files, write canvas scripts, and view compositions.",
+  "author": {
+    "name": "Stewdio"
+  },
+  "homepage": "https://www.stewdio.ai",
+  "repository": "https://github.com/StewdioAI/plugin",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Stewdio",
+    "shortDescription": "Inspect and edit Stewdio Files",
+    "longDescription": "Browse, search, create, and edit your Stewdio Files. Open the editor or inline node previews in MCP Apps hosts, with live saving and selection context. Supported ChatGPT surfaces also offer sidebar access and selection attachments. Requires a Stewdio account. Access is limited to your own Files across active organizations. Import assets through the editor.",
+    "developerName": "Stewdio",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write", "Interactive"],
+    "websiteURL": "https://www.stewdio.ai",
+    "supportURL": "https://www.stewdio.ai/support",
+    "privacyPolicyURL": "https://www.stewdio.ai/privacy",
+    "termsOfServiceURL": "https://www.stewdio.ai/terms",
+    "composerIcon": "./assets/logo.png",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "List my Stewdio Files.",
+      "Open one of my Stewdio Files.",
+      "Help me animate a canvas in my Stewdio File."
+    ]
+  }
+}

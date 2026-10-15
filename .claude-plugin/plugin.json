@@ -1,0 +1,17 @@
+{
+  "name": "stewdio",
+  "version": "0.1.9",
+  "description": "Inspect and edit Stewdio Files, write canvas scripts, and view compositions.",
+  "author": {
+    "name": "Stewdio"
+  },
+  "homepage": "https://www.stewdio.ai",
+  "documentationUrl": "https://github.com/StewdioAI/plugin/blob/main/README.md",
+  "supportUrl": "https://www.stewdio.ai/support",
+  "privacyPolicyUrl": "https://www.stewdio.ai/privacy",
+  "termsOfServiceUrl": "https://www.stewdio.ai/terms",
+  "repository": "https://github.com/StewdioAI/plugin",
+  "license": "MIT",
+  "mcpServers": "./.mcp.json",
+  "icon": "./assets/logo.png"
+}

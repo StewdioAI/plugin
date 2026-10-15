@@ -1,0 +1,14 @@
+{
+  "name": "stewdio",
+  "description": "Inspect and edit Stewdio Files, write canvas scripts, and view compositions.",
+  "owner": {
+    "name": "Stewdio"
+  },
+  "plugins": [
+    {
+      "name": "stewdio",
+      "source": "./",
+      "description": "Inspect and edit Stewdio Files, write canvas scripts, and view compositions."
+    }
+  ]
+}

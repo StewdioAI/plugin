@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "stewdio": {
+      "type": "http",
+      "url": "https://api.stewdio.ai/mcp"
+    }
+  }
+}
