@@ -153,6 +153,17 @@ the plugin.
 
 Run `npm run test:integration` to check packaging; tests also require `unzip`.
 
+### Download a bundle from GitHub Actions
+
+The [CI workflow](https://github.com/StewdioAI/plugin/actions/workflows/ci.yml)
+runs packaging tests and builds a submission ZIP for every pull request and push
+to `main`. It can also be started manually using **Run workflow**.
+
+Open a successful run and download `stewdio-<version>.zip` from **Artifacts**.
+That file is the submission ZIP, ready to upload to the OpenAI plugin portal.
+Artifacts are retained for 30 days; rerun the workflow to rebuild an expired
+bundle. Use a successful `main` run when preparing a release.
+
 ## License
 
 The plugin files are available under the [MIT License](LICENSE). The Stewdio
