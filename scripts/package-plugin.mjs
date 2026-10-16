@@ -61,6 +61,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   );
   const output =
     process.argv[2] ??
-    path.join(directory, "dist", `${manifest.name}-chatgpt-plugin-${manifest.version}.zip`);
+    path.join(directory, "dist", `${manifest.name}-openai-plugin-${manifest.version}.zip`);
   console.log(packagePlugin(directory, output));
 }

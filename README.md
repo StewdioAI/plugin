@@ -137,7 +137,7 @@ npm run package
 
 This requires Node.js 22 or later and the system `zip` command. No dependency
 installation or Stewdio monorepo checkout is needed. The command writes
-`dist/stewdio-chatgpt-plugin-<version>.zip`, using the version in `.codex-plugin/plugin.json`.
+`dist/stewdio-openai-plugin-<version>.zip`, using the version in `.codex-plugin/plugin.json`.
 To choose another output path, run `npm run package -- /path/to/submission.zip`.
 
 The ZIP contains `.codex-plugin/plugin.json`, `.mcp.json`, `skills/`, `assets/`,
@@ -159,10 +159,31 @@ The [CI workflow](https://github.com/StewdioAI/plugin/actions/workflows/ci.yml)
 runs packaging tests and builds a submission ZIP for every pull request and push
 to `main`. It can also be started manually using **Run workflow**.
 
-Open a successful run and download `stewdio-chatgpt-plugin-<version>.zip` from **Artifacts**.
+Open a successful run and download `stewdio-openai-plugin-<version>.zip` from **Artifacts**.
 That file is the submission ZIP, ready to upload to the OpenAI plugin portal.
 Artifacts are retained for 30 days; rerun the workflow to rebuild an expired
-bundle. Use a successful `main` run when preparing a release.
+bundle.
+
+### Download or publish a release
+
+Versioned submission ZIPs are attached to [GitHub Releases](https://github.com/StewdioAI/plugin/releases).
+Download `stewdio-openai-plugin-<version>.zip` from the release's **Assets**.
+Release assets remain available beyond the 30-day Actions artifact retention period.
+
+To publish a release, push a tag in `v<major>.<minor>.<patch>` format on the
+intended commit. For example, after the version has been set to `0.0.2`:
+
+```sh
+git tag -a v0.0.2 -m "Stewdio 0.0.2"
+git push origin v0.0.2
+```
+
+CI checks that the tag matches the versions in both plugin manifests and
+`package.json`, runs the integration tests, and builds the ZIP. After those
+checks pass, it creates a GitHub Release with that same ZIP attached. PRs and
+pushes to `main` produce Actions artifacts; publishing a release requires a
+version tag. Only a human developer should change version numbers. GitHub
+Releases do not publish the plugin to the OpenAI plugin directory.
 
 ## License
 
