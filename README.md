@@ -111,6 +111,13 @@ requests omit credentials. **Open in Stewdio** opens File links on
 See the [privacy policy](https://www.stewdio.ai/privacy) for data handling and the
 [terms of service](https://www.stewdio.ai/terms) for use of the hosted service.
 
+Stewdio is published by Cekura, Inc. The source repository
+is owned by the [StewdioAI GitHub organization](https://github.com/StewdioAI).
+
+The listing icon is a readable SVG image containing only
+static shapes. It has no scripts or external references. Packaging copies it as
+an asset; release validation reads manifest versions. Neither executes the icon.
+
 ## Troubleshooting and support
 
 - **Tools are missing:** check that the plugin or connector is enabled. In Claude
