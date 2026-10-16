@@ -37,7 +37,7 @@ test("submission ZIP includes the Codex package and excludes local and marketpla
     ".mcp.json",
     "LICENSE",
     "README.md",
-    "assets/logo.png",
+    "assets/logo.svg",
     "skills/stewdio/SKILL.md",
     "skills/stewdio/agents/openai.yaml",
     "skills/stewdio/references/canvas.md",
