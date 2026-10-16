@@ -17,10 +17,27 @@ Use the Stewdio MCP tools for the user's requested File work.
 - Use IDs returned by tools. Asset IDs must refer to existing assets in the same
   File; users import assets through Stewdio's editor.
 
+## Authoring principles
+
+- Prefer native `image` and `video` layers for media placement, playback, and
+  layer transforms. Use Canvas when the result needs custom drawing or processing.
+- Keep motion editable with XML keyframes: animate native fields for layer
+  transforms and opacity, and named inputs for custom Canvas effects. Give effects
+  separate tracks when users should be able to adjust their timing independently.
+- Design controls as part of the creation. Expose meaningful ways for users to
+  shape its appearance and motion, with useful defaults and ranges suited to the
+  design, so they can explore variations without editing code.
+- Treat each Canvas frame as a deterministic rendering of current inputs, assets,
+  and dimensions. Keep timing in keyframes; cached resources may improve rendering
+  performance, but previous frames must not determine the current result.
+
 ## Authoring references
 
 - Read the [XML reference](references/xml.md) before authoring File XML. It covers
   subtree replacement, ETags, inputs, clips, animations, and write diagnostics.
+- When designing Canvas controls, follow the
+  [input authoring best practices](references/xml.md#input-authoring-best-practices)
+  for choosing controls, labels, defaults, and ranges.
 - Also read the [Canvas reference](references/canvas.md) before writing or debugging
   Canvas scripts. It covers renderer lifecycle, drawing, fonts, bound File assets,
   and rendering checks.

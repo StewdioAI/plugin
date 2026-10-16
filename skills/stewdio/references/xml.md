@@ -12,6 +12,11 @@ No open editor or desktop application is required.
   for the whole File. `depth` is a nonnegative integer; omit it for all descendants.
   Whole-File reads include `<assets>` and `<pages>` inside `<file>`. Asset metadata
   is complete at every depth; pages are collapsed at whole-File `depth: 0`.
+- Read a known target directly with `read_xml({ fileId, nodeId })` to get its full
+  subtree. For discovery in a large File, use a limited `depth` for an overview,
+  then read the relevant node without `depth`. A collapsed node's ID can be used
+  immediately; there is no need to expand each intermediate level. Omit both
+  `nodeId` and `depth` when the task needs the complete File.
 - `write_xml({ fileId, xml, parentId?, ifMatch? })` accepts exactly one page, section,
   composition, canvas, image, or video subtree. `<file>`, `<assets>`, `<pages>`,
   and asset records are inspection-only. There is no standalone animation write.
@@ -113,6 +118,12 @@ for script asset bindings.
 
 ## Clips and animations
 
+Use field keyframes for a layer's position, scale, rotation, and opacity so these
+remain editable in the timeline. Use input keyframes for custom Canvas effects,
+with separate named inputs when users need independent timing or easing. A single
+progress input can drive one coherent effect, such as a reveal; avoid burying
+separate entrances, fades, and movements in hardcoded script timelines.
+
 Only layers whose immediate parent is a composition have clips. Supply
 `clip-start`, `clip-duration`, and `clip-trim` together, in seconds. Start may be
 negative; duration and trim are nonnegative. Omit all three outside compositions.
@@ -160,6 +171,45 @@ Each input requires `key` and `type`; keys match `[a-z][a-zA-Z0-9]*`. Optional
 | `boolean` | `value="true"` or `value="false"`  | no child elements                            |
 | `select`  | `value` matching an option         | one or more `<option>text</option>` children |
 
+### Input authoring best practices
+
+- Expose controls for edits the user is likely to make: copy, colors, layout
+  choices, and motion parameters. Also consider what gives this particular
+  creation its character: a pattern might offer density and spacing, while a
+  curved motif might offer bend and spread. Choose controls that produce useful
+  variations and let users shape the result without editing code. Keep
+  implementation constants in the script and derive related values from shared
+  controls and Canvas dimensions. Avoid separate inputs for values that should
+  always change together.
+- Use stable, descriptive camelCase keys such as `title`, `accentColor`, and
+  `fontSize`. Give controls readable labels; include units where helpful, such as
+  `Font size (px)` or `Source time (s)`. Renaming a key requires updating its script
+  references and any `<animation input="...">` target in the same edit.
+- Choose the type that fits the control: `string` for editable copy, `color` for
+  colors, `boolean` for toggles, `select` for a finite set of supported choices,
+  and `number` for quantities. Prefer a select over free text when only certain
+  values are valid. For asset choices, use binding names as select values and
+  declare every selectable asset in `<asset-bindings>`; inputs do not hold assets.
+- Set initial values that produce the intended design before any animation runs.
+  Give numbers meaningful `min`, `max`, and `step` values where appropriate;
+  for example, `0..1` with step `0.01` for normalized progress, or step `1` for
+  counts. Keep initial values and authored keyframes within the intended range.
+  Handle any bounds needed for valid rendering in the script rather than relying
+  on control metadata to protect calculations.
+- Read editable values from `inputs` in `render`, so changes affect the next
+  frame. Do not hardcode a second copy of those values or cache them only during
+  setup. Handle valid edge values, such as empty copy or a zero count, without
+  replacing them with defaults through truthiness checks.
+- For custom motion, animate a meaningful input such as `reveal`, `bend`, or
+  `sourceTime` in seconds through XML. Derive the frame from its sampled value so
+  seeking remains deterministic; use separate tracks for independently timed
+  effects. Only number and color inputs can have input animation tracks; an
+  input's name does not give it a clock.
+- When previewing is available, change the exposed controls and check that each
+  affects the intended result. Check numeric endpoints, select choices, and
+  representative text lengths; for animated controls, also revisit an earlier
+  frame. A successful XML write alone does not verify the controls' behavior.
+
 ## Complete example
 
 Create this subtree with `write_xml` under the first page. It declares all five
@@ -183,25 +233,25 @@ in Stewdio's editor.
     context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     const color = inputs.tint;
     context.fillStyle = `rgba(${color.r * 255},${color.g * 255},${color.b * 255},${color.a})`;
-    context.font = (inputs.bold ? "700 " : "400 ") + "48px sans-serif";
+    context.font = (inputs.bold ? "700 " : "400 ") + inputs.fontSize + "px sans-serif";
     context.textAlign = inputs.align;
     context.textBaseline = "middle";
-    const x = (inputs.align === "center" ? width / 2 : 20) + inputs.progress * 24;
+    const x = inputs.align === "center" ? width / 2 : 20;
     context.fillText(inputs.title, x, height / 2, width - 80);
   },
   dispose() {}
 });]]></script>
     <input key="title" type="string" label="Title">Hello &amp; welcome</input>
-    <input key="progress" type="number" value="0" min="0" max="1" step="0.01" />
-    <input key="tint" type="color" value="#FFCC66" />
-    <input key="bold" type="boolean" value="true" />
-    <input key="align" type="select" value="center">
+    <input key="fontSize" type="number" label="Font size (px)" value="48" min="16" max="64" step="1" />
+    <input key="tint" type="color" label="Text color" value="#FFCC66" />
+    <input key="bold" type="boolean" label="Bold" value="true" />
+    <input key="align" type="select" label="Text alignment" value="center">
       <option>left</option>
       <option>center</option>
     </input>
-    <animation input="progress">
-      <keyframe time="0" value="0" />
-      <keyframe time="4" value="1" />
+    <animation input="fontSize">
+      <keyframe time="0" value="24" />
+      <keyframe time="1" value="48" />
     </animation>
     <animation field="opacity">
       <keyframe time="0" value="0" easing="bezier(0.25 0.1 0.25 1)" />
