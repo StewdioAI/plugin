@@ -26,37 +26,9 @@ organization's Stewdio plan. The Stewdio desktop application is not required.
 
 ## Setup
 
-### Claude
-
-Add Stewdio from Claude's directory, then connect it and sign in with your Stewdio
-account when prompted. Plugins added from the directory also load in Claude Code.
-
-You can also add a [custom connector](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp)
-with the URL `https://api.stewdio.ai/mcp`. A connector alone provides the tools
-without the skill.
-
-### Claude Code
-
-To install from Stewdio's marketplace instead of the directory, run this in a
-Claude Code session (v2.1.275 or later):
-
-```text
-/plugin install stewdio --marketplace StewdioAI/plugin
-```
-
-Choose an installation scope and follow any reload instructions. Then run `/mcp`,
-select the Stewdio server, and complete sign-in in your browser.
-
-### ChatGPT and Codex
-
-Install Stewdio from the plugin directory and sign in with your Stewdio account. In
-supported ChatGPT surfaces, you can also open Stewdio from the sidebar and use
-**Add to chat** to attach your current selection to a conversation.
-
-### Other MCP hosts
-
-Connect to `https://api.stewdio.ai/mcp` using Streamable HTTP and OAuth. Hosts
-without MCP Apps can still list, create, inspect, and edit Files through tools.
+Follow the [installation guide](https://github.com/StewdioAI/plugin/blob/main/INSTALL.md)
+for Claude, ChatGPT, Codex CLI, and other MCP hosts. It covers installation,
+sign-in, and verification of the plugin's skill and authenticated tools.
 
 ## Try it
 
