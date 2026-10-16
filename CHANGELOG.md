@@ -1,5 +1,11 @@
 # plugin
 
+## 0.0.5
+
+### Patch Changes
+
+- docs: add one-click starter links for the post-install session (#5)
+
 ## 0.0.4
 
 ### Patch Changes
