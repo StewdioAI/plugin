@@ -1,5 +1,12 @@
 {
   "name": "plugin",
   "version": "0.0.2",
-  "private": true
+  "private": true,
+  "scripts": {
+    "package": "node scripts/package-plugin.mjs",
+    "test:integration": "node --test test/integration/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
 }

@@ -127,6 +127,32 @@ For further help, contact [Stewdio support](https://www.stewdio.ai/support) with
 your host name, the tool used, and the error message. Exclude access tokens and
 private File content from support reports.
 
+## Build the ChatGPT and Codex submission bundle
+
+From a checkout of this repository, run:
+
+```sh
+npm run package
+```
+
+This requires Node.js 22 or later and the system `zip` command. No dependency
+installation or Stewdio monorepo checkout is needed. The command writes
+`dist/stewdio-<version>.zip`, using the version in `.codex-plugin/plugin.json`.
+To choose another output path, run `npm run package -- /path/to/submission.zip`.
+
+The ZIP contains `.codex-plugin/plugin.json`, `.mcp.json`, `skills/`, `assets/`,
+`LICENSE`, and `README.md` at its root. The builder excludes marketplace files,
+repository tooling, and local settings, and replaces an existing archive so
+removed files do not remain in a later build.
+
+Upload the ZIP to the existing Stewdio plugin in the
+[OpenAI plugin portal](https://platform.openai.com/plugins). See the
+[submission guide](https://developers.openai.com/plugins/deploy/submission) for
+upload and review requirements. Packaging does not change the version or publish
+the plugin.
+
+Run `npm run test:integration` to check packaging; tests also require `unzip`.
+
 ## License
 
 The plugin files are available under the [MIT License](LICENSE). The Stewdio
