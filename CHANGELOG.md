@@ -1,5 +1,13 @@
 # plugin
 
+## 0.0.3
+
+### Patch Changes
+
+- a9180cf: Manage plugin versions and changelogs with Changesets, keep the Claude and Codex
+  manifests synchronized, and publish a verified plugin ZIP on every update to main.
+- Version and release every main update with Changesets (#3)
+
 ## 0.0.2
 
 ### Patch Changes
