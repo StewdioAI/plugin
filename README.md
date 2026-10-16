@@ -2,69 +2,61 @@
 
 Browse, create, inspect, and edit your [Stewdio](https://www.stewdio.ai) Files from
 your assistant. Read and write File XML, author Canvas scripts, and preview nodes
-and Compositions. Hosts that support MCP Apps can display the File library, an
-editor with live saving, and inline node previews.
+and Compositions. Assistants that support MCP Apps can also show your File library,
+an editor that saves as you work, and inline node previews.
 
-## Requirements and setup
+## What you can do
 
-You need a Stewdio account with an active organization membership, an internet
-connection, and a host that supports remote MCP servers and OAuth. File access is
-limited to your own Files across active organizations. Creating and editing Files
-is subject to your Stewdio plan. The Stewdio desktop application is not required.
+- Find Files by name across your organizations, or create a new File.
+- Inspect a File or any node subtree as XML, then make targeted edits that preserve
+  unrelated content.
+- Write and debug Canvas scripts, including drawing, fonts, and bound File assets.
+- Open the File library, the File editor, or a node preview in the conversation.
 
-The plugin bundles one [stewdio skill](skills/stewdio/SKILL.md) with local
-references for File XML, subtree editing, inputs, clips, animations, and Canvas
-renderer scripts, including drawing, fonts, and bound File assets.
+The plugin connects the hosted Stewdio MCP server and bundles the
+[stewdio skill](skills/stewdio/SKILL.md), which teaches your assistant File XML,
+subtree editing, inputs, clips, animations, and Canvas renderer scripts.
 
-Install the plugin to make this skill available in hosts that support skills.
-Connecting only the remote MCP server exposes its tools without installing the
-skill; install the skill folder separately if your host supports that.
+## Requirements
+
+You need a Stewdio account with an active organization membership and an assistant
+that supports remote MCP servers with OAuth sign-in. You can access only your own
+Files in your active organizations. Creating and editing Files is subject to your
+organization's Stewdio plan. The Stewdio desktop application is not required.
+
+## Setup
+
+### Claude
+
+Add Stewdio from Claude's directory, then connect it and sign in with your Stewdio
+account when prompted. Plugins added from the directory also load in Claude Code.
+
+You can also add a [custom connector](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp)
+with the URL `https://api.stewdio.ai/mcp`. A connector alone provides the tools
+without the skill.
 
 ### Claude Code
 
-In a Claude Code session (v2.1.275 or later), run:
+To install from Stewdio's marketplace instead of the directory, run this in a
+Claude Code session (v2.1.275 or later):
 
 ```text
 /plugin install stewdio --marketplace StewdioAI/plugin
 ```
 
-Review the plugin and choose an installation scope. Follow any reload instructions,
-then run `/mcp`, select the Stewdio server, and complete OAuth sign-in in your
-browser. See [Claude Code's installation guide](https://code.claude.com/docs/en/discover-plugins).
+Choose an installation scope and follow any reload instructions. Then run `/mcp`,
+select the Stewdio server, and complete sign-in in your browser.
 
 ### ChatGPT and Codex
 
-Install the Stewdio plugin and connect its MCP server. For development, connect
-your deployed test endpoint as a custom MCP server and refresh the connection
-after changing tool metadata or resources.
+Install Stewdio from the plugin directory and sign in with your Stewdio account. In
+supported ChatGPT surfaces, you can also open Stewdio from the sidebar and use
+**Add to chat** to attach your current selection to a conversation.
 
-In an MCP Apps host, `view_files` opens the File library with thumbnails, server-side
-search, **Load more**, and a **New File** button. Select a File to open its editor. Supported
-ChatGPT surfaces also expose **Stewdio** in the sidebar and conversation panel.
-**Add to chat** attaches the current selection; ordinary selection changes supply background
-context. Removing an attachment keeps it removed until you explicitly attach
-again. Agents use `read_xml` to retrieve current content.
+### Other MCP hosts
 
-File deep links route to `/files/{fileId}` inside the global `view_files`
-entrypoint. Construct a host link using the actual installed/published plugin
-identity, following the [OpenAI extension reference](https://developers.openai.com/plugins/build/extensions).
-Canonical Stewdio web links remain usable outside ChatGPT.
-
-### Claude and other MCP hosts
-
-In Claude, add a custom remote connector with the URL `https://api.stewdio.ai/mcp`,
-complete OAuth sign-in, and enable the connector for your conversation. See
-[Claude's connector setup guide](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
-
-Other hosts can connect to the same URL using Streamable HTTP and OAuth. Hosts
+Connect to `https://api.stewdio.ai/mcp` using Streamable HTTP and OAuth. Hosts
 without MCP Apps can still list, create, inspect, and edit Files through tools.
-Both `list_files` and `view_files` accept `query` for a case-insensitive File name
-search, `organizationId` to filter by active organization, and `limit` (default
-25, maximum 100). Results are ordered by most recently updated first. Pass the
-returned `nextCursor` as `cursor` with the same filters to load another page;
-`nextCursor: null` means there are no more results. For example,
-`list_files({ query: "Launch", limit: 25 })` finds matching Files without loading
-the entire library.
 
 ## Try it
 
@@ -72,31 +64,33 @@ the entire library.
 - "Create a Stewdio File named Launch animation."
 - "Open my Launch animation File and help me animate a Canvas."
 
-If you belong to multiple organizations, specify which organization should own a
-new File. Inspect the current File before requesting edits. XML writes replace
-the targeted node subtree and can remove descendants omitted from the submitted
-XML. Edits in the embedded editor save live.
+If you belong to multiple organizations, say which one should own a new File. Ask
+your assistant to inspect a File before editing it: XML writes replace the targeted
+node subtree and remove descendants omitted from the submitted XML. Edits in the
+embedded editor save as you work.
 
-| Tool                    | Purpose                                                                                     |
-| ----------------------- | ------------------------------------------------------------------------------------------- |
-| `list_files`            | Search and paginate your Files and their organizations.                                     |
-| `create_file`           | Create a File with an initial Page.                                                         |
-| `read_xml`              | Read a File or node subtree as XML.                                                         |
-| `write_xml`             | Create or update a node subtree using XML.                                                  |
-| `view_files`            | Open the File library in an MCP Apps host.                                                  |
-| `view_file`             | Open a File in the embedded editor.                                                         |
-| `view_node`             | Preview a node and its descendants.                                                         |
-| `authorize_file_access` | Let the embedded app synchronize one File and access its assets; available only to the app. |
+| Tool             | Purpose                                                                                                    |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| `list_files`     | Search and paginate your Files and their organizations.                                                    |
+| `create_file`    | Create a File with an initial Page.                                                                        |
+| `read_xml`       | Read a File or node subtree as XML.                                                                        |
+| `write_xml`      | Create or update a node subtree using XML.                                                                 |
+| `view_files`     | Open the File library in an MCP Apps host.                                                                 |
+| `view_file`      | Open a File in the embedded editor.                                                                        |
+| `view_node`      | Preview a node and its descendants.                                                                        |
+| `get_api_access` | Give the embedded app short-lived access to the regular API in an organization; available only to the app. |
+
+`list_files` and `view_files` search File names without regard to case, can filter
+by organization, and return up to 100 Files per page, most recently updated first.
 
 ## Execution, network access, and data
 
 The plugin bundles one skill and configures a remote server; it installs no
 local server, hooks, scripts, or package dependencies. Your host sends tool
-arguments and OAuth credentials to
-`https://api.stewdio.ai/mcp`. Arguments can include File and organization IDs, File
-names, XML, and Canvas scripts. The server returns File metadata, requested File
-content, and UI resources to the host. File writes are stored by Stewdio. Sign-in
-uses WorkOS through `https://signin.stewdio.ai`.
+arguments and OAuth credentials to `https://api.stewdio.ai/mcp`. Arguments can
+include File and organization IDs, File names, XML, and Canvas scripts. The server
+returns File metadata, requested File content, and UI resources to the host. File
+writes are stored by Stewdio. Sign-in uses WorkOS through `https://signin.stewdio.ai`.
 
 In MCP Apps hosts, the embedded UI runs in the host's sandbox, connects to
 `https://api.stewdio.ai` and `wss://api.stewdio.ai` for authorized File operations
@@ -106,12 +100,13 @@ use signed URLs on `29117f3a6e767d87fa15ea697a7dbec9.r2.cloudflarestorage.com`.
 File access credentials are supplied to the embedded app separately from
 model-visible tool results.
 
-Canvas scripts execute in an isolated iframe at `https://stewdiousercontent.com`.
-Depending on the File's content, rendering can fetch public modules and resources
-from `esm.sh`, `cdn.jsdelivr.net`, `unpkg.com`, and `threejs.org`, and fonts from
-`fonts.googleapis.com` and `fonts.gstatic.com`. These public resource requests omit
-credentials. **Open in Stewdio** opens File links on `https://www.stewdio.ai`;
-exports use the host's download capability when available.
+Canvas scripts execute in an isolated iframe at `https://stewdiousercontent.com`,
+a Stewdio domain kept separate from `stewdio.ai` so that scripts can't reach your
+account. Depending on the File's content, rendering can fetch public modules and
+resources from `esm.sh`, `cdn.jsdelivr.net`, `unpkg.com`, and `threejs.org`, and
+fonts from `fonts.googleapis.com` and `fonts.gstatic.com`. These public resource
+requests omit credentials. **Open in Stewdio** opens File links on
+`https://www.stewdio.ai`; exports use the host's download capability when available.
 
 See the [privacy policy](https://www.stewdio.ai/privacy) for data handling and the
 [terms of service](https://www.stewdio.ai/terms) for use of the hosted service.
@@ -132,23 +127,8 @@ For further help, contact [Stewdio support](https://www.stewdio.ai/support) with
 your host name, the tool used, and the error message. Exclude access tokens and
 private File content from support reports.
 
-## Verification before release
-
-Automated coverage includes both MCP protocol generations, access denial and
-revocation, File discovery, mention-resource reads, save-before-navigation,
-selection removal, deep links, and a sandboxed browser running the built UI
-against the API Worker and PostgreSQL.
-
-After deploying the changes to a test endpoint, verify ChatGPT desktop,
-applicable ChatGPT Work web surfaces, and Claude Desktop. Record host versions
-and check OAuth, entrypoints/mentions where supported, editor and agent edits,
-asset loading/imports, node playback, ticket renewal, and display fallbacks.
-Automated host tests do not establish compatibility with every host release.
-Application and plugin version changes remain human-owned.
-
 ## License
 
-This plugin package is available under the [MIT License](LICENSE). In the Stewdio
-monorepo, this license applies only to `plugin/`. This license covers the distributed
-plugin files; the Stewdio applications, hosted MCP server, and the rest of the
-Stewdio monorepo remain proprietary.
+The plugin files are available under the [MIT License](LICENSE). The Stewdio
+applications and hosted MCP server are proprietary and covered by the
+[terms of service](https://www.stewdio.ai/terms).

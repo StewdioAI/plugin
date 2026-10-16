@@ -1,9 +1,11 @@
 {
   "name": "stewdio",
-  "version": "0.1.9",
-  "description": "Inspect and edit Stewdio Files, write canvas scripts, and view compositions.",
+  "displayName": "Stewdio",
+  "version": "0.0.2",
+  "description": "Create motion graphics, brand assets, and animations with prompts, then refine them with precise controls in Stewdio's visual editor.",
   "author": {
-    "name": "Stewdio"
+    "name": "Stewdio",
+    "email": "founders@stewdio.ai"
   },
   "homepage": "https://www.stewdio.ai",
   "documentationUrl": "https://github.com/StewdioAI/plugin/blob/main/README.md",

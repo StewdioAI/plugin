@@ -1,5 +1,10 @@
+interface:
+  display_name: "Stewdio"
+  short_description: "Inspect and edit Stewdio Files"
 dependencies:
   tools:
     - type: "mcp"
       value: "stewdio"
       description: "Inspect and edit Stewdio Files"
+      transport: "streamable_http"
+      url: "https://api.stewdio.ai/mcp"
