@@ -1,5 +1,11 @@
 # plugin
 
+## 0.0.4
+
+### Patch Changes
+
+- docs: add INSTALL.md for Stewdio plugin installation (#4)
+
 ## 0.0.3
 
 ### Patch Changes
