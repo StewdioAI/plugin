@@ -14,7 +14,7 @@ Treat a request to follow this guide as a request to install the plugin. Complet
 2. **Check requirements and existing setup.** Check host plan and workspace restrictions. Inspect installed plugins and skills, matching the repository and server URL above. Reuse the plugin and authenticated connection where supported; preserve other configuration and conflicting entries.
 3. **Install.** In web and desktop apps, use available UI controls or guide the user through the next few clicks. In CLI agents, execute inspection and installation commands in that agent's environment. If blocked, explain why and provide the exact command for the user.
 4. **Authenticate.** Let the user complete OAuth sign-in and consent in their browser. Never request passwords or access tokens in chat.
-5. **Start a new session.** Explicitly ask the user to start a new conversation or CLI session with Stewdio enabled to load its skill and tools. Continue pending verification there.
+5. **Start a new session.** Explicitly ask the user to start a new conversation or CLI session with Stewdio enabled to load its skill and tools. Give them the one-click starter link or command from [Start a new session](#start-a-new-session). Continue pending verification there.
 6. **Verify.** Follow the verification checks below before reporting success.
 
 ## Claude web and desktop
@@ -110,6 +110,34 @@ For Cursor, VS Code, Gemini CLI, or another host, consult its current official p
 If it supports only MCP servers, offer a plugin-capable client above. If the user chooses tools only, connect `https://api.stewdio.ai/mcp` with Streamable HTTP and OAuth, preserve existing settings, and verify authenticated tool access. Report this as an MCP connection, not a plugin installation; it lacks the bundled skill.
 
 Embedded File libraries, editors, and node previews require host support for MCP Apps. Otherwise, use tools to work with Files and open the returned Stewdio File links.
+
+## Start a new session
+
+Make the new session one click away. Give the user a clickable link or button that opens a new session with this starter prompt filled in, where `<Stewdio>` is the host's own reference to the installed plugin:
+
+> Use `<Stewdio>` to create a 10 second animation
+
+Use the matching host's prompt and link below. Render the link as a clickable Markdown link or button, and also show the prompt so the user can paste it if the link does not open. If the host's chat renders custom-scheme links as plain text, show the link in a code block for the user to paste into the browser address bar. Links only fill in the prompt; the user reviews and sends it. If the installed plugin, skill, or marketplace name differs from `stewdio`, substitute it and URL-encode the prompt again.
+
+**Claude desktop.** Prompt: `Use /stewdio to create a 10 second animation`. Link: [Start with Stewdio](claude://claude.ai/new?q=Use%20%2Fstewdio%20to%20create%20a%2010%20second%20animation). For Claude Code in the desktop app, use the Claude Code CLI prompt with [this link](claude://code/new?q=Use%20%2Fstewdio%3Astewdio%20to%20create%20a%2010%20second%20animation).
+
+**Claude web.** There is no prefill link. Link to [a new chat](https://claude.ai/new), show the Claude desktop prompt, and tell the user to choose **stewdio** from the `/` menu if the typed reference is not recognized.
+
+**Claude Code CLI.** Prompt: `Use /stewdio:stewdio to create a 10 second animation`. Link (v2.1.91 or later): [Start with Stewdio](claude-cli://open?q=Use%20%2Fstewdio%3Astewdio%20to%20create%20a%2010%20second%20animation). It opens a new terminal window. Offer to open it for the user with `open` on macOS, `xdg-open` on Linux, or `Start-Process` on Windows. Without a desktop session, such as over SSH, give the command instead; it sends the prompt right away:
+
+```sh
+claude 'Use /stewdio:stewdio to create a 10 second animation'
+```
+
+**Codex CLI and Codex app.** Prompt: `Use [@Stewdio](plugin://stewdio@stewdio) to create a 10 second animation`. Codex reads this link form as a plugin mention. Replace `stewdio@stewdio` with the plugin ID that `codex plugin list` reports if it differs. In the Codex app, link to [Start with Stewdio](codex://new?prompt=Use%20%5B%40Stewdio%5D%28plugin%3A%2F%2Fstewdio%40stewdio%29%20to%20create%20a%2010%20second%20animation). In the CLI, give the command; it sends the prompt right away:
+
+```sh
+codex 'Use [@Stewdio](plugin://stewdio@stewdio) to create a 10 second animation'
+```
+
+**Cursor.** Prompt: `Use /stewdio to create a 10 second animation`. Link: [Start with Stewdio](https://cursor.com/link/prompt?text=Use%20%2Fstewdio%20to%20create%20a%2010%20second%20animation). The equivalent `cursor://anysphere.cursor-deeplink/prompt?text=…` link opens Cursor directly. Admins can disable deeplinks.
+
+**ChatGPT web and desktop.** There is no prefill link. Link to [a new chat](https://chatgpt.com/), show `Use @Stewdio to create a 10 second animation`, and tell the user to type `@` and choose **Stewdio** so the mention attaches to the plugin.
 
 ## Verify the installation
 
