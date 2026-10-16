@@ -134,7 +134,7 @@ For further help, contact [Stewdio support](https://www.stewdio.ai/support) with
 your host name, the tool used, and the error message. Exclude access tokens and
 private File content from support reports.
 
-## Build the ChatGPT and Codex submission bundle
+## Build the plugin bundle
 
 From a checkout of this repository, run:
 
@@ -144,13 +144,22 @@ npm run package
 
 This requires Node.js 22 or later and the system `zip` command. No dependency
 installation or Stewdio monorepo checkout is needed. The command writes
-`dist/stewdio-openai-plugin-<version>.zip`, using the version in `.codex-plugin/plugin.json`.
-To choose another output path, run `npm run package -- /path/to/submission.zip`.
+`dist/stewdio-plugin-<version>.zip`, using the version in `.codex-plugin/plugin.json`.
+To choose another output path, run `npm run package -- /path/to/plugin.zip`.
 
-The ZIP contains `.codex-plugin/plugin.json`, `.mcp.json`, `skills/`, `assets/`,
-`LICENSE`, and `README.md` at its root. The builder excludes marketplace files,
-repository tooling, and local settings, and replaces an existing archive so
-removed files do not remain in a later build.
+The ZIP contains `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`,
+`.codex-plugin/plugin.json`, `.mcp.json`, `skills/`, `assets/`, `LICENSE`, and
+`README.md` at its root. Claude and Codex share the same MCP configuration,
+skills, and assets. The builder excludes repository tooling and local settings,
+and replaces an existing archive so removed files do not remain in a later build.
+
+For Claude Code, load the ZIP for a session with:
+
+```sh
+claude --plugin-dir "./dist/stewdio-plugin-<version>.zip"
+```
+
+Replace `<version>` with the packaged version.
 
 Upload the ZIP to the existing Stewdio plugin in the
 [OpenAI plugin portal](https://platform.openai.com/plugins). See the
@@ -163,34 +172,35 @@ Run `npm run test:integration` to check packaging; tests also require `unzip`.
 ### Download a bundle from GitHub Actions
 
 The [CI workflow](https://github.com/StewdioAI/plugin/actions/workflows/ci.yml)
-runs packaging tests and builds a submission ZIP for every pull request and push
+runs packaging tests and builds a plugin ZIP for every pull request and push
 to `main`. It can also be started manually using **Run workflow**.
 
-Open a successful run and download `stewdio-openai-plugin-<version>.zip` from **Artifacts**.
-That file is the submission ZIP, ready to upload to the OpenAI plugin portal.
+Open a successful run and download `stewdio-plugin-<version>.zip` from **Artifacts**.
+That file is the plugin ZIP for Claude Code and OpenAI plugin submissions.
 Artifacts are retained for 30 days; rerun the workflow to rebuild an expired
 bundle.
 
 ### Download or publish a release
 
-Versioned submission ZIPs are attached to [GitHub Releases](https://github.com/StewdioAI/plugin/releases).
-Download `stewdio-openai-plugin-<version>.zip` from the release's **Assets**.
+Versioned plugin ZIPs are attached to [GitHub Releases](https://github.com/StewdioAI/plugin/releases).
+Download `stewdio-plugin-<version>.zip` from the release's **Assets**.
 Release assets remain available beyond the 30-day Actions artifact retention period.
 
 To publish a release, push a tag in `v<major>.<minor>.<patch>` format on the
 intended commit. For example, after the version has been set to `0.0.2`:
 
 ```sh
-git tag -a v0.0.2 -m "Stewdio 0.0.2"
+git tag -a v0.0.2 -m "Stewdio Plugin 0.0.2"
 git push origin v0.0.2
 ```
 
 CI checks that the tag matches the versions in both plugin manifests and
 `package.json`, runs the integration tests, and builds the ZIP. After those
-checks pass, it creates a GitHub Release with that same ZIP attached. PRs and
-pushes to `main` produce Actions artifacts; publishing a release requires a
-version tag. Only a human developer should change version numbers. GitHub
-Releases do not publish the plugin to the OpenAI plugin directory.
+checks pass, it creates a GitHub Release titled `Stewdio Plugin v<version>` with
+that same ZIP attached. PRs and pushes to `main` produce Actions artifacts;
+publishing a release requires a version tag. Only a human developer should change
+version numbers. GitHub Releases do not publish the plugin to the OpenAI plugin
+directory.
 
 ## License
 

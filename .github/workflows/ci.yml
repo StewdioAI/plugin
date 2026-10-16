@@ -34,9 +34,9 @@ jobs:
       - name: Validate release tag
         if: startsWith(github.ref, 'refs/tags/')
         run: node scripts/validate-release.mjs "$GITHUB_REF_NAME"
-      - name: Build submission bundle
+      - name: Build plugin bundle
         run: npm run package
-      - name: Upload submission ZIP
+      - name: Upload plugin ZIP
         id: upload
         uses: actions/upload-artifact@v7
         with:
@@ -54,13 +54,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download verified submission ZIP
+      - name: Download verified plugin ZIP
         uses: actions/download-artifact@v8
         with:
           artifact-ids: ${{ needs.package.outputs.artifact-id }}
           path: dist
           skip-decompress: true
-      - name: Publish release with submission ZIP
+      - name: Publish release with plugin ZIP
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -68,6 +68,6 @@ jobs:
         run: >-
           gh release create "$RELEASE_TAG" dist/*.zip
           --verify-tag
-          --title "Stewdio $RELEASE_TAG"
-          --notes "Download the attached stewdio-openai-plugin ZIP for submission to the OpenAI plugin portal for ChatGPT and Codex."
+          --title "Stewdio Plugin $RELEASE_TAG"
+          --notes "Download the attached stewdio-plugin ZIP for Claude Code or submission to the OpenAI plugin portal for ChatGPT and Codex."
           --generate-notes

@@ -42,6 +42,12 @@ finish on failure. Iframe recovery cannot reliably interrupt an infinite loop.
 
 ## Drawing and seeking
 
+Treat the visible frame as a pure function of current inputs, bound assets, and
+dimensions. State may hold rendering resources or caches, but rendering the same
+values must produce the same result regardless of prior calls. Read editable
+values in `render`; do not advance a private animation loop or simulation between
+frames. Let XML keyframes supply changing values.
+
 Before render, `canvas.width` and `canvas.height` become
 `max(1, round(logicalDimension * pixelRatio))`. The separate `width` and `height`
 arguments are logical dimensions. Draw in backing pixels, or reset the context
@@ -135,14 +141,23 @@ Report visual verification as incomplete until checked. Clients without MCP Apps
 do not receive view tools; users can inspect playback in Stewdio's editor.
 The MCP tools do not capture Compositions.
 
-## Example: an existing image asset
+## Example: a custom radial image reveal
 
-Replace the example `ref` with an image asset ID from `read_xml` before creating
-this Canvas. On an existing Canvas, preserve the inputs and animations you want
-to keep when replacing its XML.
+For ordinary image display, use a native layer:
 
 ```xml
-<canvas name="Logo" size="640 360">
+<image name="Logo" asset="asset:image:a1b2c3d4" size="640 360" />
+```
+
+Use Canvas here for a custom radial clipping effect. The `reveal` control sets
+the visible fraction of a clockwise sweep; it can be keyframed when the Canvas
+is inside a composition. Layer movement and opacity can use native field tracks.
+Replace the example asset IDs with an image asset ID from `read_xml` before
+creating either node. On an existing Canvas, preserve the inputs and animations
+you want to keep when replacing its XML.
+
+```xml
+<canvas name="Logo reveal" size="640 360">
   <asset-bindings>
     <asset name="logo" ref="asset:image:a1b2c3d4" />
   </asset-bindings>
@@ -152,16 +167,32 @@ to keep when replacing its XML.
     if (context === null) throw new Error("Canvas 2D is unavailable");
     return context;
   },
-  async render({ canvas, state: context, assets }) {
+  async render({ canvas, state: context, assets, inputs, width, height, pixelRatio }) {
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
+    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    const reveal = Math.max(0, Math.min(1, inputs.reveal));
+    if (reveal === 0) return;
     const logo = assets.get("logo", "image");
     if (logo === null) throw new Error("The bound image is unavailable");
     const frame = await logo.frame();
     if (frame === null) return;
-    context.drawImage(frame.bitmap, 0, 0, canvas.width, canvas.height);
+    const scale = Math.min(width / frame.width, height / frame.height);
+    const drawWidth = frame.width * scale;
+    const drawHeight = frame.height * scale;
+    context.save();
+    context.beginPath();
+    context.moveTo(width / 2, height / 2);
+    context.arc(width / 2, height / 2, Math.hypot(width, height) / 2,
+      -Math.PI / 2, -Math.PI / 2 + reveal * 2 * Math.PI);
+    context.closePath();
+    context.clip();
+    context.drawImage(frame.bitmap, (width - drawWidth) / 2,
+      (height - drawHeight) / 2, drawWidth, drawHeight);
+    context.restore();
   },
   dispose() {}
 });]]></script>
+  <input key="reveal" type="number" label="Reveal" value="0.75" min="0" max="1" step="0.01" />
 </canvas>
 ```

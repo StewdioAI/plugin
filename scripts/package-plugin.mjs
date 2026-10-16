@@ -13,6 +13,8 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const entries = [
+  ".claude-plugin/plugin.json",
+  ".claude-plugin/marketplace.json",
   ".codex-plugin/plugin.json",
   ".mcp.json",
   "skills",
@@ -61,6 +63,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   );
   const output =
     process.argv[2] ??
-    path.join(directory, "dist", `${manifest.name}-openai-plugin-${manifest.version}.zip`);
+    path.join(directory, "dist", `${manifest.name}-plugin-${manifest.version}.zip`);
   console.log(packagePlugin(directory, output));
 }
