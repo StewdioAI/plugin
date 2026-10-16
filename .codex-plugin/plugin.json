@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "description": "Create motion graphics, brand assets, and animations with prompts, then refine them with precise controls in Stewdio's visual editor.",
   "author": {
-    "name": "Stewdio",
+    "name": "Cekura, Inc.",
     "email": "founders@stewdio.ai"
   },
   "homepage": "https://www.stewdio.ai",
@@ -14,7 +14,7 @@
     "displayName": "Stewdio",
     "shortDescription": "Create & edit motion graphics",
     "longDescription": "Design and edit motion graphics and visual assets with Stewdio. Create product launch animations, feature explainers, animated UI demos, and brand assets. Describe what you want to make with ChatGPT and refine the result with precise control in Stewdio's visual editor to adjust colors, typography, layout, animation timing, and much more. Preview your work as you edit. Requires a Stewdio account with an active organization membership. Creating and editing Files is subject to your organization's Stewdio plan. Available views depend on your assistant.",
-    "developerName": "Stewdio",
+    "developerName": "Cekura, Inc.",
     "category": "Creativity",
     "capabilities": ["Read", "Write", "Interactive"],
     "websiteURL": "https://www.stewdio.ai",
