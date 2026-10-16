@@ -135,8 +135,9 @@ From a checkout of this repository, run:
 npm run package
 ```
 
-This requires Node.js 22 or later and the system `zip` command. No dependency
-installation or Stewdio monorepo checkout is needed. The command writes
+This requires Node.js 24 (or another version allowed by `package.json`) and the
+system `zip` command. Packaging alone needs no dependency installation or Stewdio
+monorepo checkout. The command writes
 `dist/stewdio-plugin-<version>.zip`, using the version in `.codex-plugin/plugin.json`.
 To choose another output path, run `npm run package -- /path/to/plugin.zip`.
 
@@ -160,13 +161,16 @@ Upload the ZIP to the existing Stewdio plugin in the
 upload and review requirements. Packaging does not change the version or publish
 the plugin.
 
-Run `npm run test:integration` to check packaging; tests also require `unzip`.
+For development, run `npm ci` to install the Changesets tooling, then
+`npm run test:integration` to check packaging and versioning. Tests also require
+`unzip`.
 
 ### Download a bundle from GitHub Actions
 
 The [CI workflow](https://github.com/StewdioAI/plugin/actions/workflows/ci.yml)
-runs packaging tests and builds a plugin ZIP for every pull request and push
-to `main`. It can also be started manually using **Run workflow**.
+runs integration tests and builds a plugin ZIP for every pull request. Every push
+to `main` also versions and publishes the plugin. Use **Run workflow** to build
+an artifact manually without publishing.
 
 Open a successful run and download `stewdio-plugin-<version>.zip` from **Artifacts**.
 That file is the plugin ZIP for Claude Code and OpenAI plugin submissions.
@@ -179,21 +183,32 @@ Versioned plugin ZIPs are attached to [GitHub Releases](https://github.com/Stewd
 Download `stewdio-plugin-<version>.zip` from the release's **Assets**.
 Release assets remain available beyond the 30-day Actions artifact retention period.
 
-To publish a release, push a tag in `v<major>.<minor>.<patch>` format on the
-intended commit. For example, after the version has been set to `0.0.2`:
+Every push to `main` automatically publishes a release after validation. CI uses
+[Changesets](https://changesets.dev/guide/cli) to update `package.json` and
+`CHANGELOG.md`, then synchronizes both plugin manifests and the npm lockfile.
+It tests and packages the result, commits the version changes to `main`, and
+creates a `v<major>.<minor>.<patch>` tag and GitHub Release with the verified ZIP.
+There is no separate release PR or manual tag step.
+
+Each merge gets at least a patch bump using its commit subject as the release
+note. To request a larger bump or add a more detailed note, run:
 
 ```sh
-git tag -a v0.0.2 -m "Stewdio Plugin 0.0.2"
-git push origin v0.0.2
+npm run changeset
 ```
 
-CI checks that the tag matches the versions in both plugin manifests and
-`package.json`, runs the integration tests, and builds the ZIP. After those
-checks pass, it creates a GitHub Release titled `Stewdio Plugin v<version>` with
-that same ZIP attached. PRs and pushes to `main` produce Actions artifacts;
-publishing a release requires a version tag. Only a human developer should change
-version numbers. GitHub Releases do not publish the plugin to the OpenAI plugin
-directory.
+Select `plugin`, choose the bump type, and commit the generated `.changeset/*.md`
+file with your changes. CI applies all pending entries using the highest requested
+bump, so changes without an entry still ship. Leave versions and `CHANGELOG.md`
+unchanged in feature branches. `npm run version:plugin` is available to exercise
+the versioning step locally in a disposable checkout with pending changesets.
+
+Releases run one at a time and include the latest `main` at the time of packaging.
+The workflow needs permission to push its version commit and tag; branch rules
+must allow the Actions bot to update `main`. Bot pushes use `GITHUB_TOKEN` so
+they do not trigger another release. Rerunning a failed run reuses its existing
+version commit and tag if they were already pushed. GitHub Releases do not
+publish to npm or submit the plugin to the OpenAI plugin directory.
 
 ## License
 

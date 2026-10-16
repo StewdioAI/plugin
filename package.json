@@ -3,10 +3,15 @@
   "version": "0.0.2",
   "private": true,
   "scripts": {
+    "changeset": "changeset",
+    "version:plugin": "changeset version && node scripts/sync-plugin-version.mjs && npm install --package-lock-only --ignore-scripts",
     "package": "node scripts/package-plugin.mjs",
     "test:integration": "node --test test/integration/*.test.mjs"
   },
   "engines": {
-    "node": ">=22"
+    "node": "^22.11 || ^24 || >=26"
+  },
+  "devDependencies": {
+    "@changesets/cli": "3.0.3"
   }
 }
