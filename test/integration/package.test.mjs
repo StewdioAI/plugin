@@ -59,7 +59,7 @@ test("plugin ZIP includes Claude and Codex packages and excludes local and repos
     ".mcp.json",
     "LICENSE",
     "README.md",
-    "assets/logo.png",
+    "assets/logo.svg",
     "skills/stewdio/SKILL.md",
     "skills/stewdio/agents/openai.yaml",
     "skills/stewdio/references/canvas.md",
