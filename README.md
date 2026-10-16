@@ -137,7 +137,7 @@ npm run package
 
 This requires Node.js 22 or later and the system `zip` command. No dependency
 installation or Stewdio monorepo checkout is needed. The command writes
-`dist/stewdio-<version>.zip`, using the version in `.codex-plugin/plugin.json`.
+`dist/stewdio-chatgpt-plugin-<version>.zip`, using the version in `.codex-plugin/plugin.json`.
 To choose another output path, run `npm run package -- /path/to/submission.zip`.
 
 The ZIP contains `.codex-plugin/plugin.json`, `.mcp.json`, `skills/`, `assets/`,
@@ -159,7 +159,7 @@ The [CI workflow](https://github.com/StewdioAI/plugin/actions/workflows/ci.yml)
 runs packaging tests and builds a submission ZIP for every pull request and push
 to `main`. It can also be started manually using **Run workflow**.
 
-Open a successful run and download `stewdio-<version>.zip` from **Artifacts**.
+Open a successful run and download `stewdio-chatgpt-plugin-<version>.zip` from **Artifacts**.
 That file is the submission ZIP, ready to upload to the OpenAI plugin portal.
 Artifacts are retained for 30 days; rerun the workflow to rebuild an expired
 bundle. Use a successful `main` run when preparing a release.

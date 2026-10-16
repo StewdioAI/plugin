@@ -60,6 +60,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     readFileSync(path.join(directory, ".codex-plugin/plugin.json"), "utf8"),
   );
   const output =
-    process.argv[2] ?? path.join(directory, "dist", `${manifest.name}-${manifest.version}.zip`);
+    process.argv[2] ??
+    path.join(directory, "dist", `${manifest.name}-chatgpt-plugin-${manifest.version}.zip`);
   console.log(packagePlugin(directory, output));
 }
