@@ -26,7 +26,7 @@ organization's Stewdio plan. The Stewdio desktop application is not required.
 
 ## Setup
 
-Follow the [setup guide](https://github.com/StewdioAI/plugin/blob/main/setup.md)
+Follow the [installation guide](https://github.com/StewdioAI/plugin/blob/main/INSTALL.md)
 for Claude, ChatGPT, Codex CLI, and other MCP hosts. It covers installation,
 sign-in, and verification of the plugin's skill and authenticated tools.
 
