@@ -33,6 +33,7 @@
   "extensions": {
     "com.openai": {
       "review": {
+        "demo_recording_url": "https://media.stewdio.ai/openai-plugin-review-demo.mov",
         "test_cases": {
           "positive": [
             {
