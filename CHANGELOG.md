@@ -1,5 +1,11 @@
 # plugin
 
+## 0.0.6
+
+### Patch Changes
+
+- Update plugin guidance for unified open_stewdio navigation (#6)
+
 ## 0.0.5
 
 ### Patch Changes
