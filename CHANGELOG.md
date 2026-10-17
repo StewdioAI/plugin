@@ -1,5 +1,11 @@
 # plugin
 
+## 0.0.7
+
+### Patch Changes
+
+- Clarify File link fallback and add OpenAI review demo (#7)
+
 ## 0.0.6
 
 ### Patch Changes
