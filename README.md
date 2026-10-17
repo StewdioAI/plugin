@@ -41,19 +41,34 @@ your assistant to inspect a File before editing it: XML writes replace the targe
 node subtree and remove descendants omitted from the submitted XML. Edits in the
 embedded editor save as you work.
 
-| Tool             | Purpose                                                                                                    |
-| ---------------- | ---------------------------------------------------------------------------------------------------------- |
-| `list_files`     | Search and paginate your Files and their organizations.                                                    |
-| `create_file`    | Create a File with an initial Page.                                                                        |
-| `read_xml`       | Read a File or node subtree as XML.                                                                        |
-| `write_xml`      | Create or update a node subtree using XML.                                                                 |
-| `view_files`     | Open the File library in an MCP Apps host.                                                                 |
-| `view_file`      | Open a File in the embedded editor.                                                                        |
-| `view_node`      | Preview a node and its descendants.                                                                        |
+| Tool | Purpose |
+| --- | --- |
+| `list_files` | Search and paginate your Files and their organizations. |
+| `create_file` | Create a File with an initial Page. |
+| `read_xml` | Read a File or node subtree as XML. |
+| `write_xml` | Create or update a node subtree using XML. |
+| `open_stewdio` | Open the File library, a File editor, or a read-only node preview in an MCP Apps host. |
 | `get_api_access` | Give the embedded app short-lived access to the regular API in an organization; available only to the app. |
 
-`list_files` and `view_files` search File names without regard to case, can filter
-by organization, and return up to 100 Files per page, most recently updated first.
+`open_stewdio` selects its destination from the supplied IDs:
+
+| Arguments | Destination |
+| --- | --- |
+| `{}` | File library. |
+| `{ fileId }` | Existing File in the editor. |
+| `{ fileId, nodeId }` | Read-only preview of the node and its descendants. |
+
+Library calls accept `query`, `organizationId`, `limit`, and `cursor`, just like
+`list_files`. Both search File names without regard to case and return up to 100
+Files per page, most recently updated first. Library filters and pagination
+cannot be combined with `fileId`; `nodeId` requires `fileId`.
+
+All three destinations use one MCP App resource, `ui://stewdio/app.html`.
+Library/editor launches request fullscreen where supported; node previews prefer
+inline. The host controls presentation, and expanding a preview does not enable
+editing. Call `open_stewdio` with only `fileId`, or select **Open in Stewdio** in
+the preview, to enter the editor. Opening any view does not create a File or
+change its contents; edits in the editor save to the existing File.
 
 ## Execution, network access, and data
 
@@ -77,8 +92,8 @@ a Stewdio domain kept separate from `stewdio.ai` so that scripts can't reach you
 account. Depending on the File's content, rendering can fetch public modules and
 resources from `esm.sh`, `cdn.jsdelivr.net`, `unpkg.com`, and `threejs.org`, and
 fonts from `fonts.googleapis.com` and `fonts.gstatic.com`. These public resource
-requests omit credentials. **Open in Stewdio** opens File links on
-`https://www.stewdio.ai`; exports use the host's download capability when available.
+requests omit credentials. **Open externally** in the editor menu opens File links
+on `https://www.stewdio.ai`; exports use the host's download capability when available.
 
 See the [privacy policy](https://www.stewdio.ai/privacy) for data handling and the
 [terms of service](https://www.stewdio.ai/terms) for use of the hosted service.
@@ -99,8 +114,9 @@ an asset; release validation reads manifest versions. Neither executes the icon.
 - **File unavailable or access forbidden:** confirm that you own the File and
   have an active membership in its organization. For creation or editing errors,
   check your organization and plan in Stewdio.
-- **Editor or preview unavailable:** use **Open in Stewdio**, or open the File URL
-  returned by the view tool. Embedded UI and fullscreen support depend on the host.
+- **Editor or preview unavailable:** open the returned File URL in Stewdio, or use
+  **Open externally** in the editor menu. Embedded UI and fullscreen support depend
+  on the host.
 
 For further help, contact [Stewdio support](https://www.stewdio.ai/support) with
 your host name, the tool used, and the error message. Exclude access tokens and

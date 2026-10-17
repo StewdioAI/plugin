@@ -134,11 +134,13 @@ requested in one render.
 ## Check rendering
 
 A successful XML write validates content but does not prove that imports load or
-that a script renders correctly. When `view_node` is available, open the Canvas
-or its containing Composition for inspection. For animation, check the beginning,
-middle, and later frames, then revisit an earlier time when playback is available.
+that a script renders correctly. When `open_stewdio` is available, supply `fileId`
+and the Canvas or containing Composition's `nodeId` for a read-only preview.
+For animation, check the beginning, middle, and later frames, then revisit an
+earlier time when playback is available. To adjust exposed controls in the
+editor, call `open_stewdio` with only `fileId`.
 Report visual verification as incomplete until checked. Clients without MCP Apps
-do not receive view tools; users can inspect playback in Stewdio's editor.
+do not receive `open_stewdio`; users can inspect playback in Stewdio's editor.
 The MCP tools do not capture Compositions.
 
 ## Example: a custom radial image reveal
