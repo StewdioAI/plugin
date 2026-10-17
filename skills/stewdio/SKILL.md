@@ -63,5 +63,11 @@ A node preview stays read-only in fullscreen; open the File without `nodeId` to
 edit. Library/editor launches request fullscreen where supported; node previews
 prefer inline, and the host controls presentation.
 
+After creating or editing a File, include a clickable link to it. Prefer a plugin
+deep link only when the host or a tool explicitly supplies one as supported in
+the current client. Otherwise, use the File's HTTPS URL. Preserve tool-returned
+URLs exactly. If no URL is returned, use `https://www.stewdio.ai/files/<fileId>`
+with the File ID returned by a tool.
+
 Report what changed and distinguish saved content from visual or playback checks
 that have actually been performed.
