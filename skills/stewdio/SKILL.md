@@ -49,6 +49,19 @@ for updates. Omitted content on expanded nodes is removed.
 ## Inspect the result
 
 Read the saved subtree when needed to verify its structure and obtain a current
-ETag for another update. In hosts with MCP Apps, `view_file` opens the editor and
-`view_node` opens an inline preview. Report what changed and distinguish saved
-content from visual or playback checks that have actually been performed.
+ETag for another update. In hosts with MCP Apps, use `open_stewdio`:
+
+| Arguments | Destination |
+| --- | --- |
+| `{}` | File library; optionally supply `query`, `organizationId`, `limit`, or `cursor`. |
+| `{ fileId }` | Existing File in the editor. |
+| `{ fileId, nodeId }` | Read-only preview of the node and its descendants, with playback where available. |
+
+`nodeId` requires `fileId`. Library filters and pagination cannot be combined
+with a File target. Opening a view does not create a File or change its contents.
+A node preview stays read-only in fullscreen; open the File without `nodeId` to
+edit. Library/editor launches request fullscreen where supported; node previews
+prefer inline, and the host controls presentation.
+
+Report what changed and distinguish saved content from visual or playback checks
+that have actually been performed.

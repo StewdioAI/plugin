@@ -142,8 +142,8 @@ codex 'Use [@Stewdio](plugin://stewdio@stewdio) to create a 10 second animation'
 ## Verify the installation
 
 1. Confirm the plugin is installed and enabled and its bundled `stewdio` skill is available.
-2. Discover its tools and call the read-only `list_files` tool. An authenticated response with no Files is valid if `organizations` contains at least one active organization. Configuration, a server listing, an open sign-in page, or a tool list alone does not prove authenticated access.
-3. If `organizations` is empty, setup is incomplete: the account cannot create a File. Have the user finish account setup on Stewdio web or ask their organization administrator to check membership, then retry.
+2. Discover its tools and call the read-only `list_files` tool. A successful response confirms authenticated access, including when `files` is empty. Configuration, a server listing, an open sign-in page, or a tool list alone does not prove authenticated access.
+3. In MCP Apps hosts, call `open_stewdio` with `{}` to open the File library and check its `organizations` array. If empty, the account cannot create a File: have the user finish account setup on Stewdio web or ask their organization administrator to check membership, then retry. Without MCP Apps, an empty `list_files` response does not verify active organization membership; report that limit rather than creating a test File.
 
 If the skill or tools are missing, enable the plugin in the conversation or reload the client. For authentication errors, complete or repeat OAuth. If a new session is needed, state what is installed and what remains unverified; do not report success yet.
 
