@@ -1,5 +1,11 @@
 # plugin
 
+## 0.0.8
+
+### Patch Changes
+
+- fix: use the dedicated Stewdio MCP endpoint (#8)
+
 ## 0.0.7
 
 ### Patch Changes
