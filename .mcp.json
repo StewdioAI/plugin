@@ -2,7 +2,7 @@
   "mcpServers": {
     "stewdio": {
       "type": "http",
-      "url": "https://api.stewdio.ai/mcp"
+      "url": "https://mcp.stewdio.ai/mcp"
     }
   }
 }
