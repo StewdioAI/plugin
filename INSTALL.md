@@ -1,6 +1,6 @@
 # Set up Stewdio
 
-Install the Stewdio plugin to create and edit motion graphics with your agent. It bundles a `stewdio` skill and an MCP server at `https://api.stewdio.ai/mcp` using Streamable HTTP and OAuth. An MCP connection alone does not install the skill.
+Install the Stewdio plugin to create and edit motion graphics with your agent. It bundles a `stewdio` skill and an MCP server at `https://mcp.stewdio.ai/mcp` using Streamable HTTP and OAuth. An MCP connection alone does not install the skill.
 
 You need a Stewdio account with active organization membership. Creating and editing Files depends on your organization's Stewdio plan. The Stewdio desktop application is optional.
 
@@ -107,7 +107,7 @@ Reference: [Codex plugin commands](https://learn.chatgpt.com/docs/cli/reference#
 
 For Cursor, VS Code, Gemini CLI, or another host, consult its current official plugin guide or installed CLI's `--help`. Use its supported installation path; configuration and authentication differ by host.
 
-If it supports only MCP servers, offer a plugin-capable client above. If the user chooses tools only, connect `https://api.stewdio.ai/mcp` with Streamable HTTP and OAuth, preserve existing settings, and verify authenticated tool access. Report this as an MCP connection, not a plugin installation; it lacks the bundled skill.
+If it supports only MCP servers, offer a plugin-capable client above. If the user chooses tools only, connect `https://mcp.stewdio.ai/mcp` with Streamable HTTP and OAuth, preserve existing settings, and verify authenticated tool access. Report this as an MCP connection, not a plugin installation; it lacks the bundled skill.
 
 Embedded File libraries, editors, and node previews require host support for MCP Apps. Otherwise, use tools to work with Files and open the returned Stewdio File links.
 

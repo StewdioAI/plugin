@@ -74,14 +74,15 @@ change its contents; edits in the editor save to the existing File.
 
 The plugin bundles one skill and configures a remote server; it installs no
 local server, hooks, scripts, or package dependencies. Your host sends tool
-arguments and OAuth credentials to `https://api.stewdio.ai/mcp`. Arguments can
+arguments and OAuth credentials to `https://mcp.stewdio.ai/mcp`. Arguments can
 include File and organization IDs, File names, XML, and Canvas scripts. The server
 returns File metadata, requested File content, and UI resources to the host. File
 writes are stored by Stewdio. Sign-in uses WorkOS through `https://signin.stewdio.ai`.
 
 In MCP Apps hosts, the embedded UI runs in the host's sandbox, connects to
 `https://api.stewdio.ai` and `wss://api.stewdio.ai` for authorized File operations
-and live synchronization, and retrieves thumbnails from the API. Asset imports
+and live synchronization, and retrieves UI assets and thumbnails from
+`https://mcp.stewdio.ai`. Asset imports
 upload selected files to Stewdio's Cloudflare R2 storage; asset reads and uploads
 use signed URLs on `29117f3a6e767d87fa15ea697a7dbec9.r2.cloudflarestorage.com`.
 File access credentials are supplied to the embedded app separately from

@@ -7,4 +7,4 @@ dependencies:
       value: "stewdio"
       description: "Inspect and edit Stewdio Files"
       transport: "streamable_http"
-      url: "https://api.stewdio.ai/mcp"
+      url: "https://mcp.stewdio.ai/mcp"
