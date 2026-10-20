@@ -137,7 +137,7 @@ are replaced by the next published release; report issues here for the Stewdio
 maintainers to address in the source repository.
 
 Versioned ZIPs are attached to [GitHub Releases](https://github.com/StewdioAI/plugin/releases).
-Each release includes the plugin ZIP and a `release.json` receipt identifying its
+Each monorepo release includes the plugin ZIP and a `release.json` receipt identifying its
 source commit and artifact checksums. The same release supplies the files in this
 repository for Git-based installation and the ZIP for OpenAI directory submission.
 Publishing these files does not by itself publish either directory listing.
