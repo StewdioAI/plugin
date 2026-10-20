@@ -51,10 +51,10 @@ for updates. Omitted content on expanded nodes is removed.
 Read the saved subtree when needed to verify its structure and obtain a current
 ETag for another update. In hosts with MCP Apps, use `open_stewdio`:
 
-| Arguments | Destination |
-| --- | --- |
-| `{}` | File library; optionally supply `query`, `organizationId`, `limit`, or `cursor`. |
-| `{ fileId }` | Existing File in the editor. |
+| Arguments            | Destination                                                                       |
+| -------------------- | --------------------------------------------------------------------------------- |
+| `{}`                 | File library; optionally supply `query`, `organizationId`, `limit`, or `cursor`.  |
+| `{ fileId }`         | Existing File in the editor.                                                      |
 | `{ fileId, nodeId }` | Read-only preview of the node and its descendants, with playback where available. |
 
 `nodeId` requires `fileId`. Library filters and pagination cannot be combined

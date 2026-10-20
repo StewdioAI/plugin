@@ -1,5 +1,11 @@
 # plugin
 
+## 0.0.9
+
+### Patch Changes
+
+- 50b9302: Publish the Stewdio plugin from the monorepo with verified Git distribution files and an OpenAI ZIP with release checksums.
+
 ## 0.0.8
 
 ### Patch Changes

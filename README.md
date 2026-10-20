@@ -44,8 +44,10 @@ claude plugin install stewdio --marketplace StewdioAI/plugin --scope user
 
 If you belong to multiple organizations, say which one should own a new File. Ask
 your assistant to inspect a File before editing it: XML writes replace the targeted
-node subtree and remove descendants omitted from the submitted XML. Edits in the
-embedded editor save as you work.
+node subtree and remove omitted descendants, except that nodes marked
+`collapsed="true"` preserve their hidden content. Updating a subtree requires the
+ETag from a read of that same root node; if the File changed, read again before
+reapplying the edit. Edits in the embedded editor save as you work.
 
 | Tool             | Purpose                                                                                                    |
 | ---------------- | ---------------------------------------------------------------------------------------------------------- |
