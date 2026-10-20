@@ -26,9 +26,15 @@ organization's Stewdio plan. The Stewdio desktop application is not required.
 
 ## Setup
 
-Follow the [installation guide](https://github.com/StewdioAI/plugin/blob/main/INSTALL.md)
+Follow the [installation guide](https://docs.stewdio.ai/installation)
 for Claude, ChatGPT, Codex CLI, and other MCP hosts. It covers installation,
 sign-in, and verification of the plugin's skill and authenticated tools.
+
+For Claude Code, install from the public marketplace:
+
+```sh
+claude plugin install stewdio --marketplace StewdioAI/plugin --scope user
+```
 
 ## Try it
 
@@ -41,21 +47,21 @@ your assistant to inspect a File before editing it: XML writes replace the targe
 node subtree and remove descendants omitted from the submitted XML. Edits in the
 embedded editor save as you work.
 
-| Tool | Purpose |
-| --- | --- |
-| `list_files` | Search and paginate your Files and their organizations. |
-| `create_file` | Create a File with an initial Page. |
-| `read_xml` | Read a File or node subtree as XML. |
-| `write_xml` | Create or update a node subtree using XML. |
-| `open_stewdio` | Open the File library, a File editor, or a read-only node preview in an MCP Apps host. |
+| Tool             | Purpose                                                                                                    |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| `list_files`     | Search and paginate your Files and their organizations.                                                    |
+| `create_file`    | Create a File with an initial Page.                                                                        |
+| `read_xml`       | Read a File or node subtree as XML.                                                                        |
+| `write_xml`      | Create or update a node subtree using XML.                                                                 |
+| `open_stewdio`   | Open the File library, a File editor, or a read-only node preview in an MCP Apps host.                     |
 | `get_api_access` | Give the embedded app short-lived access to the regular API in an organization; available only to the app. |
 
 `open_stewdio` selects its destination from the supplied IDs:
 
-| Arguments | Destination |
-| --- | --- |
-| `{}` | File library. |
-| `{ fileId }` | Existing File in the editor. |
+| Arguments            | Destination                                        |
+| -------------------- | -------------------------------------------------- |
+| `{}`                 | File library.                                      |
+| `{ fileId }`         | Existing File in the editor.                       |
 | `{ fileId, nodeId }` | Read-only preview of the node and its descendants. |
 
 Library calls accept `query`, `organizationId`, `limit`, and `cursor`, just like
@@ -123,88 +129,18 @@ For further help, contact [Stewdio support](https://www.stewdio.ai/support) with
 your host name, the tool used, and the error message. Exclude access tokens and
 private File content from support reports.
 
-## Build the plugin bundle
+## Releases
 
-From a checkout of this repository, run:
+This repository contains generated release files. Plugin development, tests, and
+release tooling live in `apps/plugin` in the Stewdio monorepo. Changes made here
+are replaced by the next published release; report issues here for the Stewdio
+maintainers to address in the source repository.
 
-```sh
-npm run package
-```
-
-This requires Node.js 24 (or another version allowed by `package.json`) and the
-system `zip` command. Packaging alone needs no dependency installation or Stewdio
-monorepo checkout. The command writes
-`dist/stewdio-plugin-<version>.zip`, using the version in `.codex-plugin/plugin.json`.
-To choose another output path, run `npm run package -- /path/to/plugin.zip`.
-
-The ZIP contains `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`,
-`.codex-plugin/plugin.json`, `.mcp.json`, `skills/`, `assets/`, `LICENSE`, and
-`README.md` at its root. Claude and Codex share the same MCP configuration,
-skills, and assets. The builder excludes repository tooling and local settings,
-and replaces an existing archive so removed files do not remain in a later build.
-
-For Claude Code, load the ZIP for a session with:
-
-```sh
-claude --plugin-dir "./dist/stewdio-plugin-<version>.zip"
-```
-
-Replace `<version>` with the packaged version.
-
-Upload the ZIP to the existing Stewdio plugin in the
-[OpenAI plugin portal](https://platform.openai.com/plugins). See the
-[submission guide](https://developers.openai.com/plugins/deploy/submission) for
-upload and review requirements. Packaging does not change the version or publish
-the plugin.
-
-For development, run `npm ci` to install the Changesets tooling, then
-`npm run test:integration` to check packaging and versioning. Tests also require
-`unzip`.
-
-### Download a bundle from GitHub Actions
-
-The [CI workflow](https://github.com/StewdioAI/plugin/actions/workflows/ci.yml)
-runs integration tests and builds a plugin ZIP for every pull request. Every push
-to `main` also versions and publishes the plugin. Use **Run workflow** to build
-an artifact manually without publishing.
-
-Open a successful run and download `stewdio-plugin-<version>.zip` from **Artifacts**.
-That file is the plugin ZIP for Claude Code and OpenAI plugin submissions.
-Artifacts are retained for 30 days; rerun the workflow to rebuild an expired
-bundle.
-
-### Download or publish a release
-
-Versioned plugin ZIPs are attached to [GitHub Releases](https://github.com/StewdioAI/plugin/releases).
-Download `stewdio-plugin-<version>.zip` from the release's **Assets**.
-Release assets remain available beyond the 30-day Actions artifact retention period.
-
-Every push to `main` automatically publishes a release after validation. CI uses
-[Changesets](https://changesets.dev/guide/cli) to update `package.json` and
-`CHANGELOG.md`, then synchronizes both plugin manifests and the npm lockfile.
-It tests and packages the result, commits the version changes to `main`, and
-creates a `v<major>.<minor>.<patch>` tag and GitHub Release with the verified ZIP.
-There is no separate release PR or manual tag step.
-
-Each merge gets at least a patch bump using its commit subject as the release
-note. To request a larger bump or add a more detailed note, run:
-
-```sh
-npm run changeset
-```
-
-Select `plugin`, choose the bump type, and commit the generated `.changeset/*.md`
-file with your changes. CI applies all pending entries using the highest requested
-bump, so changes without an entry still ship. Leave versions and `CHANGELOG.md`
-unchanged in feature branches. `npm run version:plugin` is available to exercise
-the versioning step locally in a disposable checkout with pending changesets.
-
-Releases run one at a time and include the latest `main` at the time of packaging.
-The workflow needs permission to push its version commit and tag; branch rules
-must allow the Actions bot to update `main`. Bot pushes use `GITHUB_TOKEN` so
-they do not trigger another release. Rerunning a failed run reuses its existing
-version commit and tag if they were already pushed. GitHub Releases do not
-publish to npm or submit the plugin to the OpenAI plugin directory.
+Versioned ZIPs are attached to [GitHub Releases](https://github.com/StewdioAI/plugin/releases).
+Each monorepo release includes the plugin ZIP and a `release.json` receipt identifying its
+source commit and artifact checksums. The same release supplies the files in this
+repository for Git-based installation and the ZIP for OpenAI directory submission.
+Publishing these files does not by itself publish either directory listing.
 
 ## License
 
