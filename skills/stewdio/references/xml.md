@@ -1,4 +1,4 @@
-# Authoring Stewdio File XML
+# Authoring v4 Stewdio File XML
 
 Use `list_files` to find a File, or `create_file({ name })` to create one with an
 initial page. File tools use `fileId`; creation and listing return it as `id`.
@@ -6,19 +6,26 @@ Files belong to their creator within an active organization membership. Creation
 and writes enforce the organization's billing and File/composition limits.
 No open editor or desktop application is required.
 
+Call `get_file_capabilities({ fileId })` before reading or editing. Continue here
+only for `schemaVersion: 4`. Every XML request must include `format: 4`,
+`generation` from that response, and `capability: "nodes-assets-v4"`. For v3,
+use the temporary [v3 XML reference](xml-v3.md) and `format: 3`.
+
+A format/generation conflict requires a new capabilities lookup and fresh node
+reads. Never reuse pre-migration IDs, XML or ETags. Tools never migrate a File.
+
 ## Read, create, and update
 
-- `read_xml({ fileId, nodeId?, depth? })` returns `{ xml, etag }`. Omit `nodeId`
+- `read_xml({ fileId, format: 4, generation, capability: "nodes-assets-v4", nodeId?, depth? })` returns `{ xml, etag, schemaVersion: 4, generation }`. Omit `nodeId`
   for the whole File. `depth` is a nonnegative integer; omit it for all descendants.
-  Whole-File reads include `<assets>` and `<pages>` inside `<file>`. Asset metadata
-  is complete at every depth; pages are collapsed at whole-File `depth: 0`.
+  Whole-File reads include `<pages>` inside `<file schema-version="4">`, containing nodes only. Use `list_assets` and `get_asset` for metadata; pages are collapsed at whole-File `depth: 0`.
 - Read a known target directly with `read_xml({ fileId, nodeId })` to get its full
   subtree. For discovery in a large File, use a limited `depth` for an overview,
   then read the relevant node without `depth`. A collapsed node's ID can be used
   immediately; there is no need to expand each intermediate level. Omit both
   `nodeId` and `depth` when the task needs the complete File.
-- `write_xml({ fileId, xml, parentId?, ifMatch? })` accepts exactly one page, section,
-  composition, canvas, image, or video subtree. `<file>`, `<assets>`, `<pages>`,
+- `write_xml({ fileId, format: 4, generation, capability: "nodes-assets-v4", xml, parentId?, ifMatch? })` accepts exactly one page, section,
+  composition, graphic, image, or video subtree. `<file>`, `<assets>`, `<pages>`,
   and asset records are inspection-only. There is no standalone animation write.
 - To create, omit the root `id`. A new page is a File root; omit `parentId` for it.
   Other nodes go under `parentId`, or the first page if it is omitted. Omit IDs
@@ -46,13 +53,13 @@ No open editor or desktop application is required.
 
 An update describes the complete children and animations of each expanded node.
 Omitted descendants and animation tracks are removed. XML child order determines
-sibling order. On an expanded Canvas, the `<input>` elements replace its entire
+sibling order. On an expanded Graphic, the `<input>` elements replace its entire
 input map, so omitted inputs are removed too.
 
 Omitted scalar/box attributes on existing nodes keep their values. Omitting a
-Canvas's `<script>` preserves its script; omitting `<asset-bindings>` preserves
+Graphic's `<script>` preserves its script; omitting `<asset-bindings>` preserves
 its bindings. `<asset-bindings />` explicitly clears them. New nodes use editor
-defaults for omitted properties; a new Canvas has no inputs or bindings and a
+defaults for omitted properties; a new Graphic has no inputs or bindings and a
 script that clears its drawing surface.
 
 Depth-limited reads emit self-closing nodes with `id` and `collapsed="true"`.
@@ -72,23 +79,23 @@ or delete/reorder pages because the whole-File root is not writable.
 Names are case-sensitive; unknown elements and attributes are rejected. Nesting
 establishes parentage; do not supply `parentId`, `type`, or `indexKey` as XML attributes.
 
-| Element          | Attributes                                                  | Children                                     |
-| ---------------- | ----------------------------------------------------------- | -------------------------------------------- |
-| `page`           | `id`, `name`, `background`                                  | section, composition, canvas, image, video   |
-| `section`        | `id`, `name`, `background`, box                             | section, composition, canvas, image, video   |
-| `composition`    | `id`, `name`, `background`, `duration`, box, clip           | animation, composition, canvas, image, video |
-| `canvas`         | `id`, `name`, box, clip                                     | asset-bindings, script, input, animation     |
-| `image`, `video` | `id`, `name`, `asset`, box, clip                            | animation                                    |
-| `asset-bindings` | none                                                        | asset                                        |
-| `asset`          | `name`, `ref`                                               | none                                         |
-| `script`         | none                                                        | JavaScript text, preferably CDATA            |
-| `input`          | `key`, `type`, optional `label`, type-specific values below | text or option elements                      |
-| `option`         | none                                                        | text                                         |
-| `animation`      | exactly one of `field`, `input`                             | one or more keyframe elements                |
-| `keyframe`       | `time`, `value`, optional `easing`                          | none                                         |
+| Element          | Attributes                                                  | Children                                      |
+| ---------------- | ----------------------------------------------------------- | --------------------------------------------- |
+| `page`           | `id`, `name`, `background`                                  | section, composition, graphic, image, video   |
+| `section`        | `id`, `name`, `background`, box                             | section, composition, graphic, image, video   |
+| `composition`    | `id`, `name`, `background`, `duration`, box, clip           | animation, composition, graphic, image, video |
+| `graphic`        | `id`, `name`, box, clip                                     | asset-bindings, script, input, animation      |
+| `image`, `video` | `id`, `name`, `asset`, box, clip                            | animation                                     |
+| `asset-bindings` | none                                                        | asset                                         |
+| `asset`          | `name`, `ref`                                               | none                                          |
+| `script`         | none                                                        | JavaScript text, preferably CDATA             |
+| `input`          | `key`, `type`, optional `label`, type-specific values below | text or option elements                       |
+| `option`         | none                                                        | text                                          |
+| `animation`      | exactly one of `field`, `input`                             | one or more keyframe elements                 |
+| `keyframe`       | `time`, `value`, optional `easing`                          | none                                          |
 
 All six node elements also accept `collapsed="true"` with the constraints above.
-Sections cannot be placed inside compositions. Canvases, images, and videos have
+Sections cannot be placed inside compositions. Graphics, images, and videos have
 no child nodes. A composition crops its descendants to its bounds and has a
 positive `duration` in seconds; a section has no timeline.
 
@@ -97,29 +104,33 @@ Box attributes are `position="x y"`, `size="width height"`, `scale="x y"`,
 Position and size are in the parent's local coordinate system; scale is a
 multiplier, anchor is a fraction of the node's size, rotation is in degrees,
 and opacity is in `0..1`. Defaults are position `0 0`, size `100 100`, scale
-`1 1`, anchor `0.5 0.5`, rotation `0`, opacity `1`. Image/video size defaults to
-its asset's dimensions. Default composition duration is 5 seconds.
+`1 1`, anchor `0.5 0.5`, rotation `0`, opacity `1`. Supply image/video `size` from the catalog
+media dimensions; XML cannot infer geometry from external metadata. Default composition duration is 5 seconds.
 
 Colors accept `#RRGGBB`, `#RRGGBBAA`, or four whitespace-separated RGBA numbers
 in `0..1`, such as `0.5 0.25 0 1`. Use these for `background`, color inputs, and
 color keyframes. CSS color names, short hex, and `rgba(...)` are not XML colors.
 
-Record IDs include their type prefix and eight lowercase alphanumeric characters,
-such as `node:canvas:a1b2c3d4`. Use IDs from reads when editing. New image/video
+Node IDs include their canonical type prefix and eight lowercase alphanumeric characters,
+such as `graphic:a1b2c3d4`. Use IDs from reads when editing. New image/video
 layers require `asset` pointing to an existing asset of the matching kind in the
 same File. Existing layers may omit `asset` to retain it.
 
-Whole-File reads expose `<image-asset>`, `<video-asset>`, and `<model-asset>` with
-`id`, `name`, `mime`, and content `hash`. Image/video assets also have pixel
-`width` and `height`; videos have `duration` in seconds. These records are not
-writable through XML. Users can import assets through Stewdio's fullscreen
-editor. See the bundled [Canvas reference](canvas.md)
-for script asset bindings.
+Asset metadata and bytes are external to the File. Use `list_assets` and
+`get_asset` with the same v4 admission fields, then use the returned opaque
+`assetRef` in an image/video `asset` attribute or Graphic asset binding.
+Use `prepare_asset_upload`, upload the bytes when requested, and
+`complete_asset_upload` before placing media. Never derive a ref from a hash or
+reuse another File's ref. References must be authorized for the destination.
+
+Catalog rename/remove operations are separate from node XML and node undo.
+Removing an asset from the library retains existing node/script references and
+recoverable content. See [Graphic scripts](graphic.md) for bindings.
 
 ## Clips and animations
 
 Use field keyframes for a layer's position, scale, rotation, and opacity so these
-remain editable in the timeline. Use input keyframes for custom Canvas effects,
+remain editable in the timeline. Use input keyframes for custom Graphic effects,
 with separate named inputs when users need independent timing or easing. A single
 progress input can drive one coherent effect, such as a reveal; avoid burying
 separate entrances, fades, and movements in hardcoded script timelines.
@@ -138,7 +149,7 @@ starting at local time 3. A nested composition clamps its local time to its own
 duration when evaluating children.
 
 `<animation field="opacity">` targets any box field. `<animation input="progress">`
-targets a declared Canvas input of type `number` or `color`. Each target has at
+targets a declared Graphic input of type `number` or `color`. Each target has at
 most one animation, with no XML ID. Keyframe times are nonnegative local seconds,
 strictly increasing; their values match the target's number, pair, or color type.
 Before/after the track, the first/last value is held. Easing describes the transition
@@ -146,12 +157,12 @@ to the next keyframe: `linear` (default), `hold`, `bezier(x1 y1 x2 y2)`, or
 `spring(bounce)`. Bezier x values and spring bounce are in `0..1`.
 
 Animations on a layer outside a composition are dormant. Remove an input and its
-animation together, or remove the animation first. A Canvas has no automatic
+animation together, or remove the animation first. A Graphic has no automatic
 time argument: animate a numeric input and read its sampled value in the script.
 
-## Canvas scripts and inputs
+## Graphic scripts and inputs
 
-Read the bundled [Canvas reference](canvas.md)
+Read the bundled [Graphic reference](graphic.md)
 before authoring a script. Scripts
 use `export default defineRenderer({ setup, render, dispose })` in an isolated browser iframe;
 HTML/CSS and DOM rendering are unsupported.
@@ -179,7 +190,7 @@ Each input requires `key` and `type`; keys match `[a-z][a-zA-Z0-9]*`. Optional
   curved motif might offer bend and spread. Choose controls that produce useful
   variations and let users shape the result without editing code. Keep
   implementation constants in the script and derive related values from shared
-  controls and Canvas dimensions. Avoid separate inputs for values that should
+  controls and Graphic dimensions. Avoid separate inputs for values that should
   always change together.
 - Use stable, descriptive camelCase keys such as `title`, `accentColor`, and
   `fontSize`. Give controls readable labels; include units where helpful, such as
@@ -219,7 +230,7 @@ in Stewdio's editor.
 
 ```xml
 <composition name="Intro" duration="4" size="800 450" background="#172033">
-  <canvas name="Title" position="80 150" size="640 150" clip-start="0" clip-duration="4" clip-trim="0">
+  <graphic name="Title" position="80 150" size="640 150" clip-start="0" clip-duration="4" clip-trim="0">
     <asset-bindings />
     <script><![CDATA[export default defineRenderer({
   setup({ canvas }) {
@@ -257,6 +268,6 @@ in Stewdio's editor.
       <keyframe time="0" value="0" easing="bezier(0.25 0.1 0.25 1)" />
       <keyframe time="0.5" value="1" />
     </animation>
-  </canvas>
+  </graphic>
 </composition>
 ```

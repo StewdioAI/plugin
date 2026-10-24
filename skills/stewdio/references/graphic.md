@@ -1,11 +1,16 @@
-# Canvas renderer authoring
+# Graphic renderer authoring
+
+Examples use v4 `<graphic>` and opaque asset references returned by `get_asset`.
+For an admitted v3 File, use `<canvas>` and its existing `asset:*` IDs from
+`list_assets`; the JavaScript renderer contract is identical. Read the correct
+[XML reference](xml.md) or [temporary v3 reference](xml-v3.md) first.
 
 See the bundled [XML reference](xml.md) for
 subtree replacement, input declarations, clips, and animation syntax. This
 reference covers JavaScript inside a
-Canvas's `<script>` element and the current drawing runtime.
+Graphic's `<script>` element and the current drawing runtime.
 
-Read the existing Canvas XML before replacing it. Preserve inputs, animations,
+Read the existing Graphic XML before replacing it. Preserve inputs, animations,
 and asset bindings outside the requested change, and save through `write_xml`
 with the target subtree's ETag.
 
@@ -96,10 +101,10 @@ document. URLs are external resources and do not use File asset bindings.
 
 ## Bound File assets
 
-Every Canvas declares the File assets its script reads:
-`<asset-bindings><asset name="logo" ref="asset:image:a1b2c3d4" /></asset-bindings>`.
-Use actual IDs from the File's `<image-asset>`, `<video-asset>`, or `<model-asset>`
-records. The XML write cannot upload an asset or turn a URL into one.
+Every Graphic declares the File assets its script reads:
+`<asset-bindings><asset name="logo" ref="opaque-example-ref" /></asset-bindings>`.
+Use opaque `assetRef` values from `list_assets` or `get_asset` on v4. On v3 use
+legacy IDs from its asset records. XML cannot upload an asset or turn a URL into one.
 
 `assets.get("logo")` synchronously returns a handle or `null` for a missing asset.
 `assets.get("logo", "image")` also checks its kind. Declared names and their bound
@@ -107,16 +112,22 @@ IDs resolve; undeclared lookups throw. Declare every asset that any code branch
 can select. Inputs never contain assets: use a string/select of binding names
 and resolve the selected name through `assets.get`.
 
-Bindings keep names stable while copying remaps asset IDs. Omitting the bindings
-element preserves an existing Canvas's bindings; `<asset-bindings />` clears them.
-A new Canvas without the element binds nothing. An asset must remain in the File
-while a layer or binding references it.
+Bindings keep names stable while an authorized copy remaps asset references. Omitting the bindings
+element preserves an existing Graphic's bindings; `<asset-bindings />` clears them.
+A new Graphic without the element binds nothing. V4 library removal retains
+existing references and bytes; v3 refuses removal while a node uses the asset.
 
 | Kind    | Metadata                                          | Operation                                                          |
 | ------- | ------------------------------------------------- | ------------------------------------------------------------------ |
-| `image` | `id`, `name`, `hash`, `mime`, `width`, `height`   | `await handle.frame()`                                             |
+| `image` | `id`, `name`, `hash`, `mime`, `width`, `height`   | `await handle.frame()` or `await handle.frame({ width, height })`  |
 | `video` | image metadata plus source `duration` in seconds  | `await handle.frame({ time })` with explicit finite source seconds |
 | `model` | `id`, `name`, `hash`, `mime: "model/gltf-binary"` | `await handle.arrayBuffer()`                                       |
+
+For SVG images, request the pixel dimensions you will draw, including zoom or
+pixel density: `await image.frame({ width: canvas.width, height: canvas.height })`.
+Both dimensions must be positive integers. SVGs rasterize directly at that size;
+different sizes have independent cached frames. Omitting the size retains the
+image's intrinsic resolution. Raster images can be resized but gain no new detail.
 
 Image/video frames contain `kind`, `width`, `height`, `frameKey`, and `bitmap`;
 video frames also contain `timestamp` and `duration`. The bitmap is borrowed only
@@ -135,7 +146,7 @@ requested in one render.
 
 A successful XML write validates content but does not prove that imports load or
 that a script renders correctly. When `open_stewdio` is available, supply `fileId`
-and the Canvas or containing Composition's `nodeId` for a read-only preview.
+and the Graphic or containing Composition's `nodeId` for a read-only preview.
 For animation, check the beginning, middle, and later frames, then revisit an
 earlier time when playback is available. To adjust exposed controls in the
 editor, call `open_stewdio` with only `fileId`.
@@ -148,20 +159,20 @@ The MCP tools do not capture Compositions.
 For ordinary image display, use a native layer:
 
 ```xml
-<image name="Logo" asset="asset:image:a1b2c3d4" size="640 360" />
+<image name="Logo" asset="opaque-example-ref" size="640 360" />
 ```
 
-Use Canvas here for a custom radial clipping effect. The `reveal` control sets
-the visible fraction of a clockwise sweep; it can be keyframed when the Canvas
+Use Graphic here for a custom radial clipping effect. The `reveal` control sets
+the visible fraction of a clockwise sweep; it can be keyframed when the Graphic
 is inside a composition. Layer movement and opacity can use native field tracks.
 Replace the example asset IDs with an image asset ID from `read_xml` before
-creating either node. On an existing Canvas, preserve the inputs and animations
+creating either node. On an existing Graphic, preserve the inputs and animations
 you want to keep when replacing its XML.
 
 ```xml
-<canvas name="Logo reveal" size="640 360">
+<graphic name="Logo reveal" size="640 360">
   <asset-bindings>
-    <asset name="logo" ref="asset:image:a1b2c3d4" />
+    <asset name="logo" ref="opaque-example-ref" />
   </asset-bindings>
   <script><![CDATA[export default defineRenderer({
   setup({ canvas }) {
@@ -196,5 +207,5 @@ you want to keep when replacing its XML.
   dispose() {}
 });]]></script>
   <input key="reveal" type="number" label="Reveal" value="0.75" min="0" max="1" step="0.01" />
-</canvas>
+</graphic>
 ```

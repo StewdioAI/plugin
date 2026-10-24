@@ -1,5 +1,16 @@
 # plugin
 
+## 0.1.0
+
+### Minor Changes
+
+- 9f6d2f8: Add Graphic authoring, explicit File format discovery, and asset listing, upload, rename, and removal workflows. The skill supports both retained v3 Files and canonical v4 Files during migration, preserves upload identities across retries, and requires fresh targets after a format change.
+
+### Patch Changes
+
+- b728209: Preserve desktop and plugin validation while colocating capability tests with their implementations. Keep plugin installation and usage guidance in the published README as repository module inventories move to structured descriptors.
+- ea8b02f: Teach Canvas scripts to request SVG frames at their output pixel dimensions so enlarged artwork stays sharp.
+
 ## 0.0.9
 
 ### Patch Changes

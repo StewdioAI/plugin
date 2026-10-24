@@ -1,6 +1,6 @@
 ---
 name: stewdio
-description: Browse, create, inspect, and edit Stewdio Files through MCP. Use when working with Stewdio File XML, Canvas scripts, or animations through the plugin.
+description: Browse, create, inspect, and edit Stewdio Files through MCP. Use when working with Stewdio File XML, Graphic scripts, or animations through the plugin.
 ---
 
 # Stewdio
@@ -14,32 +14,48 @@ Use the Stewdio MCP tools for the user's requested File work.
 - Use `create_file` when the user wants a new File. If creation returns organization
   choices, resolve the intended organization before retrying. Creation returns
   the File ID as `id` and includes an initial Page.
-- Use IDs returned by tools. Asset IDs must refer to existing assets in the same
-  File; users import assets through Stewdio's editor.
+- Call `get_file_capabilities({ fileId })` before reading or writing. For v4,
+  include `format: 4`, the returned `generation`, and
+  `capability: "nodes-assets-v4"` on XML and asset calls. For v3 use `format: 3`
+  and the temporary [v3 reference](references/xml-v3.md).
+- Use IDs returned by tools. V4 node IDs are canonical (`graphic:abcdefgh`);
+  assetRefs are opaque and authorized for that File. Never invent or translate
+  persisted IDs, derive refs from hashes, or copy another File's refs.
+- Use `list_assets` and `get_asset` for metadata. Upload with
+  `prepare_asset_upload`, PUT bytes to its returned URL with the exact supplied
+  headers, then call `complete_asset_upload`. V4 keeps one UUID `requestId` and
+  unchanged metadata across retries. V3 keeps one valid legacy asset record ID
+  across prepare/finalize retries. A `stored` prepare result is already complete.
+- Place media only after finalization. Supply native media dimensions from asset
+  metadata when creating image/video XML. Use `rename_asset` or `remove_asset`
+  for metadata; catalog changes do not enter v4 node undo history.
+- If format/generation changes, re-read capabilities and canonical targets.
+  Preserve pending work and report update guidance; never force migration or
+  retry old XML with a new ETag.
 
 ## Authoring principles
 
 - Prefer native `image` and `video` layers for media placement, playback, and
-  layer transforms. Use Canvas when the result needs custom drawing or processing.
+  layer transforms. Use Graphic when the result needs custom drawing or processing.
 - Keep motion editable with XML keyframes: animate native fields for layer
-  transforms and opacity, and named inputs for custom Canvas effects. Give effects
+  transforms and opacity, and named inputs for custom Graphic effects. Give effects
   separate tracks when users should be able to adjust their timing independently.
 - Design controls as part of the creation. Expose meaningful ways for users to
   shape its appearance and motion, with useful defaults and ranges suited to the
   design, so they can explore variations without editing code.
-- Treat each Canvas frame as a deterministic rendering of current inputs, assets,
+- Treat each Graphic frame as a deterministic rendering of current inputs, assets,
   and dimensions. Keep timing in keyframes; cached resources may improve rendering
   performance, but previous frames must not determine the current result.
 
 ## Authoring references
 
-- Read the [XML reference](references/xml.md) before authoring File XML. It covers
+- Read the [v4 XML reference](references/xml.md), or its linked v3 reference for a legacy File, before authoring File XML. It covers
   subtree replacement, ETags, inputs, clips, animations, and write diagnostics.
-- When designing Canvas controls, follow the
+- When designing Graphic controls, follow the
   [input authoring best practices](references/xml.md#input-authoring-best-practices)
   for choosing controls, labels, defaults, and ranges.
-- Also read the [Canvas reference](references/canvas.md) before writing or debugging
-  Canvas scripts. It covers renderer lifecycle, drawing, fonts, bound File assets,
+- Also read the [Graphic reference](references/graphic.md) before writing or debugging
+  Graphic scripts. It covers renderer lifecycle, drawing, fonts, bound File assets,
   and rendering checks.
 
 Inspect the exact target with `read_xml` before editing. Write the smallest subtree
