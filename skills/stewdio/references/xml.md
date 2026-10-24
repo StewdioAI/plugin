@@ -1,33 +1,31 @@
 # Authoring Stewdio File XML
 
 Use `list_files` to find a File, or `create_file({ name })` to create one with an
-initial page. File tools use `fileId`; creation and listing return it as `id`.
+empty canvas. Each File is one canvas with no page nodes or File background property. File tools use `fileId`; creation and listing return it as `id`.
 Files belong to their creator within an active organization membership. Creation
 and writes enforce the organization's billing and File/composition limits.
 No open editor or desktop application is required.
 
 Call `get_file_capabilities({ fileId })` before reading or editing. Every XML
-request must include `format: 4`, `generation` from that response, and
-`capability: "nodes-assets-v4"`.
+request must include `format: 5`, `generation` from that response, and
+`capability: "nodes-assets-v5"`.
 
 A generation conflict requires a new capabilities lookup and fresh node reads.
 Never reuse IDs, XML or ETags from an earlier generation.
 
 ## Read, create, and update
 
-- `read_xml({ fileId, format: 4, generation, capability: "nodes-assets-v4", nodeId?, depth? })` returns `{ xml, etag, schemaVersion: 4, generation }`. Omit `nodeId`
+- `read_xml({ fileId, format: 5, generation, capability: "nodes-assets-v5", nodeId?, depth? })` returns `{ xml, etag, schemaVersion: 5, generation }`. Omit `nodeId`
   for the whole File. `depth` is a nonnegative integer; omit it for all descendants.
-  Whole-File reads include `<pages>` inside `<file schema-version="4">`, containing nodes only. Use `list_assets` and `get_asset` for metadata; pages are collapsed at whole-File `depth: 0`.
+  Whole-File reads contain top-level nodes directly inside `<file schema-version="5">`. At whole-File `depth: 0`, these nodes are collapsed; each additional depth expands another level. Use `list_assets` and `get_asset` for asset metadata.
 - Read a known target directly with `read_xml({ fileId, nodeId })` to get its full
   subtree. For discovery in a large File, use a limited `depth` for an overview,
   then read the relevant node without `depth`. A collapsed node's ID can be used
   immediately; there is no need to expand each intermediate level. Omit both
   `nodeId` and `depth` when the task needs the complete File.
-- `write_xml({ fileId, format: 4, generation, capability: "nodes-assets-v4", xml, parentId?, ifMatch? })` accepts exactly one page, section,
-  composition, graphic, image, or video subtree. `<file>`, `<assets>`, `<pages>`,
-  and asset records are inspection-only. There is no standalone animation write.
-- To create, omit the root `id`. A new page is a File root; omit `parentId` for it.
-  Other nodes go under `parentId`, or the first page if it is omitted. Omit IDs
+- `write_xml({ fileId, format: 5, generation, capability: "nodes-assets-v5", xml, parentId?, ifMatch? })` accepts exactly one section,
+  composition, graphic, image, or video subtree. `<file>` is inspection-only. `<page>`, `<pages>`, and asset catalog records are not supported. There is no standalone animation write.
+- To create, omit the root `id`. New nodes go under `parentId`; omit it or use `null` to create at the File root. Omit IDs
   throughout a copied subtree to create fresh nodes. Keep asset references.
 - To update, read the target subtree first and keep its root `id` and element type.
   Supply the returned `etag` as `ifMatch`. Omit `parentId`; an existing root retains
@@ -69,9 +67,9 @@ editing or moving anything inside it.
 
 To move a descendant between containers, replace their common ancestor and
 include the descendant's ID under its new parent. Local transforms are retained;
-adjust them if its page position should stay fixed. To delete a descendant, omit
-it from its parent's replacement. XML cannot move existing nodes between pages
-or delete/reorder pages because the whole-File root is not writable.
+adjust them if its canvas position should stay fixed. To delete a descendant, omit
+it from its parent's replacement. XML cannot move nodes across top-level subtrees
+or delete/reorder top-level nodes because the whole-File root is not writable.
 
 ## Elements and attributes
 
@@ -80,7 +78,6 @@ establishes parentage; do not supply `parentId`, `type`, or `indexKey` as XML at
 
 | Element          | Attributes                                                  | Children                                      |
 | ---------------- | ----------------------------------------------------------- | --------------------------------------------- |
-| `page`           | `id`, `name`, `background`                                  | section, composition, graphic, image, video   |
 | `section`        | `id`, `name`, `background`, box                             | section, composition, graphic, image, video   |
 | `composition`    | `id`, `name`, `background`, `duration`, box, clip           | animation, composition, graphic, image, video |
 | `graphic`        | `id`, `name`, box, clip                                     | asset-bindings, script, input, animation      |
@@ -93,7 +90,7 @@ establishes parentage; do not supply `parentId`, `type`, or `indexKey` as XML at
 | `animation`      | exactly one of `field`, `input`                             | one or more keyframe elements                 |
 | `keyframe`       | `time`, `value`, optional `easing`                          | none                                          |
 
-All six node elements also accept `collapsed="true"` with the constraints above.
+All five writable node elements also accept `collapsed="true"` with the constraints above.
 Sections cannot be placed inside compositions. Graphics, images, and videos have
 no child nodes. A composition crops its descendants to its bounds and has a
 positive `duration` in seconds; a section has no timeline.
@@ -222,7 +219,7 @@ Each input requires `key` and `type`; keys match `[a-z][a-zA-Z0-9]*`. Optional
 
 ## Complete example
 
-Create this subtree with `write_xml` under the first page. It declares all five
+Create this subtree with `write_xml` at the File root. It declares all five
 input types and animates a number input and a box field. Read the returned
 `nodeId` before updating it. Users can inspect playback, including backward seeks,
 in Stewdio's editor.

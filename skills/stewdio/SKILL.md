@@ -13,9 +13,9 @@ Use the Stewdio MCP tools for the user's requested File work.
   follow `nextCursor` as needed; a single result page may not contain every File.
 - Use `create_file` when the user wants a new File. If creation returns organization
   choices, resolve the intended organization before retrying. Creation returns
-  the File ID as `id` and includes an initial Page.
+  the File ID as `id` and starts with an empty canvas. Each File is one canvas.
 - Call `get_file_capabilities({ fileId })` before reading or writing. Include
-  `format: 4`, the returned `generation`, and `capability: "nodes-assets-v4"` on
+  `format: 5`, the returned `generation`, and `capability: "nodes-assets-v5"` on
   XML and asset calls.
 - Use IDs returned by tools. Node IDs are canonical (`graphic:abcdefgh`);
   assetRefs are opaque and authorized for that File. Never invent or translate

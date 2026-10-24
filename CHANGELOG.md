@@ -1,5 +1,11 @@
 # plugin
 
+## 0.3.0
+
+### Minor Changes
+
+- b7533bb: Support schema v5 Files with one canvas, direct root XML nodes, and no page backgrounds.
+
 ## 0.2.0
 
 ### Minor Changes
