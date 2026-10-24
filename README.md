@@ -155,13 +155,3 @@ Publishing these files does not by itself publish either directory listing.
 The plugin files are available under the [MIT License](LICENSE). The Stewdio
 applications and hosted MCP server are proprietary and covered by the
 [terms of service](https://www.stewdio.ai/terms).
-
-## Temporary format compatibility
-
-The bundled skill supports both v3 and v4 during migration. A v4 File requires
-`nodes-assets-v4`, explicit format/generation admission, canonical node IDs and
-external assetRefs. Older plugins may continue using v3 Files; a migrated File
-requires updating the plugin and reading fresh capabilities and XML. No tool
-starts a migration. The v3 instructions remain only through the migration
-completion and client-update observation window, then a cleanup release removes
-them. Plugin publication and version-release merges remain human controlled.

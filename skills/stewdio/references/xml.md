@@ -1,4 +1,4 @@
-# Authoring v4 Stewdio File XML
+# Authoring Stewdio File XML
 
 Use `list_files` to find a File, or `create_file({ name })` to create one with an
 initial page. File tools use `fileId`; creation and listing return it as `id`.
@@ -6,13 +6,12 @@ Files belong to their creator within an active organization membership. Creation
 and writes enforce the organization's billing and File/composition limits.
 No open editor or desktop application is required.
 
-Call `get_file_capabilities({ fileId })` before reading or editing. Continue here
-only for `schemaVersion: 4`. Every XML request must include `format: 4`,
-`generation` from that response, and `capability: "nodes-assets-v4"`. For v3,
-use the temporary [v3 XML reference](xml-v3.md) and `format: 3`.
+Call `get_file_capabilities({ fileId })` before reading or editing. Every XML
+request must include `format: 4`, `generation` from that response, and
+`capability: "nodes-assets-v4"`.
 
-A format/generation conflict requires a new capabilities lookup and fresh node
-reads. Never reuse pre-migration IDs, XML or ETags. Tools never migrate a File.
+A generation conflict requires a new capabilities lookup and fresh node reads.
+Never reuse IDs, XML or ETags from an earlier generation.
 
 ## Read, create, and update
 
@@ -117,7 +116,7 @@ layers require `asset` pointing to an existing asset of the matching kind in the
 same File. Existing layers may omit `asset` to retain it.
 
 Asset metadata and bytes are external to the File. Use `list_assets` and
-`get_asset` with the same v4 admission fields, then use the returned opaque
+`get_asset` with the same admission fields, then use the returned opaque
 `assetRef` in an image/video `asset` attribute or Graphic asset binding.
 Use `prepare_asset_upload`, upload the bytes when requested, and
 `complete_asset_upload` before placing media. Never derive a ref from a hash or

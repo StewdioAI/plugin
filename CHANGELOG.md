@@ -1,5 +1,11 @@
 # plugin
 
+## 0.2.0
+
+### Minor Changes
+
+- 0cd4155: The Stewdio skill now documents only the v4 File format: canonical node IDs, `graphic` nodes, and catalog assets addressed by `assetRef`. The v3 XML reference and legacy asset instructions are removed because v3 Files and clients are no longer supported; update older plugin installations to keep editing Files.
+
 ## 0.1.0
 
 ### Minor Changes

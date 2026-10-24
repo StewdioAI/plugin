@@ -1,9 +1,7 @@
 # Graphic renderer authoring
 
-Examples use v4 `<graphic>` and opaque asset references returned by `get_asset`.
-For an admitted v3 File, use `<canvas>` and its existing `asset:*` IDs from
-`list_assets`; the JavaScript renderer contract is identical. Read the correct
-[XML reference](xml.md) or [temporary v3 reference](xml-v3.md) first.
+Examples use `<graphic>` and opaque asset references returned by `get_asset`.
+Read the [XML reference](xml.md) first.
 
 See the bundled [XML reference](xml.md) for
 subtree replacement, input declarations, clips, and animation syntax. This
@@ -103,8 +101,8 @@ document. URLs are external resources and do not use File asset bindings.
 
 Every Graphic declares the File assets its script reads:
 `<asset-bindings><asset name="logo" ref="opaque-example-ref" /></asset-bindings>`.
-Use opaque `assetRef` values from `list_assets` or `get_asset` on v4. On v3 use
-legacy IDs from its asset records. XML cannot upload an asset or turn a URL into one.
+Use opaque `assetRef` values from `list_assets` or `get_asset`. XML cannot upload
+an asset or turn a URL into one.
 
 `assets.get("logo")` synchronously returns a handle or `null` for a missing asset.
 `assets.get("logo", "image")` also checks its kind. Declared names and their bound
@@ -114,8 +112,8 @@ and resolve the selected name through `assets.get`.
 
 Bindings keep names stable while an authorized copy remaps asset references. Omitting the bindings
 element preserves an existing Graphic's bindings; `<asset-bindings />` clears them.
-A new Graphic without the element binds nothing. V4 library removal retains
-existing references and bytes; v3 refuses removal while a node uses the asset.
+A new Graphic without the element binds nothing. Library removal retains
+existing references and bytes.
 
 | Kind    | Metadata                                          | Operation                                                          |
 | ------- | ------------------------------------------------- | ------------------------------------------------------------------ |

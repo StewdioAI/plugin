@@ -14,24 +14,22 @@ Use the Stewdio MCP tools for the user's requested File work.
 - Use `create_file` when the user wants a new File. If creation returns organization
   choices, resolve the intended organization before retrying. Creation returns
   the File ID as `id` and includes an initial Page.
-- Call `get_file_capabilities({ fileId })` before reading or writing. For v4,
-  include `format: 4`, the returned `generation`, and
-  `capability: "nodes-assets-v4"` on XML and asset calls. For v3 use `format: 3`
-  and the temporary [v3 reference](references/xml-v3.md).
-- Use IDs returned by tools. V4 node IDs are canonical (`graphic:abcdefgh`);
+- Call `get_file_capabilities({ fileId })` before reading or writing. Include
+  `format: 4`, the returned `generation`, and `capability: "nodes-assets-v4"` on
+  XML and asset calls.
+- Use IDs returned by tools. Node IDs are canonical (`graphic:abcdefgh`);
   assetRefs are opaque and authorized for that File. Never invent or translate
   persisted IDs, derive refs from hashes, or copy another File's refs.
 - Use `list_assets` and `get_asset` for metadata. Upload with
   `prepare_asset_upload`, PUT bytes to its returned URL with the exact supplied
-  headers, then call `complete_asset_upload`. V4 keeps one UUID `requestId` and
-  unchanged metadata across retries. V3 keeps one valid legacy asset record ID
-  across prepare/finalize retries. A `stored` prepare result is already complete.
+  headers, then call `complete_asset_upload`. Keep one UUID `requestId` and
+  unchanged metadata across retries. A `stored` prepare result is already complete.
 - Place media only after finalization. Supply native media dimensions from asset
   metadata when creating image/video XML. Use `rename_asset` or `remove_asset`
-  for metadata; catalog changes do not enter v4 node undo history.
-- If format/generation changes, re-read capabilities and canonical targets.
-  Preserve pending work and report update guidance; never force migration or
-  retry old XML with a new ETag.
+  for metadata; catalog changes do not enter node undo history.
+- If the generation changes, re-read capabilities and canonical targets.
+  Preserve pending work; never retry old XML with a new ETag. If a tool reports
+  that this client is unsupported, ask the user to update the Stewdio plugin.
 
 ## Authoring principles
 
@@ -49,7 +47,7 @@ Use the Stewdio MCP tools for the user's requested File work.
 
 ## Authoring references
 
-- Read the [v4 XML reference](references/xml.md), or its linked v3 reference for a legacy File, before authoring File XML. It covers
+- Read the [XML reference](references/xml.md) before authoring File XML. It covers
   subtree replacement, ETags, inputs, clips, animations, and write diagnostics.
 - When designing Graphic controls, follow the
   [input authoring best practices](references/xml.md#input-authoring-best-practices)
