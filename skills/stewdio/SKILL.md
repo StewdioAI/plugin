@@ -11,25 +11,33 @@ Use the Stewdio MCP tools for the user's requested File work.
 
 - Use a supplied File ID, or find the File with `list_files`. Search by name and
   follow `nextCursor` as needed; a single result page may not contain every File.
-- Use `create_file` when the user wants a new File. If creation returns organization
-  choices, resolve the intended organization before retrying. Creation returns
+- Use `create_file` when the user wants a new File. Creation returns
   the File ID as `id` and starts with an empty canvas. Each File is one canvas.
-- Call `get_file_capabilities({ fileId })` before reading or writing. Include
-  `format: 5`, the returned `generation`, and `capability: "nodes-assets-v5"` on
-  XML and asset calls.
-- Use IDs returned by tools. Node IDs are canonical (`graphic:abcdefgh`);
-  assetRefs are opaque and authorized for that File. Never invent or translate
-  persisted IDs, derive refs from hashes, or copy another File's refs.
-- Use `list_assets` and `get_asset` for metadata. Upload with
-  `prepare_asset_upload`, PUT bytes to its returned URL with the exact supplied
-  headers, then call `complete_asset_upload`. Keep one UUID `requestId` and
-  unchanged metadata across retries. A `stored` prepare result is already complete.
-- Place media only after finalization. Supply native media dimensions from asset
-  metadata when creating image/video XML. Use `rename_asset` or `remove_asset`
-  for metadata; catalog changes do not enter node undo history.
-- If the generation changes, re-read capabilities and canonical targets.
-  Preserve pending work; never retry old XML with a new ETag. If a tool reports
-  that this client is unsupported, ask the user to update the Stewdio plugin.
+- Read existing content with `read_xml({ fileId, nodeId? })` before editing.
+- Use IDs returned by tools. Node IDs are canonical (`graphic:abcdefgh`). An
+  Asset's `hash` is the SHA-256 of its bytes and is the same in every File, but
+  a node may reference it only through a File Asset in its own File. Never invent or
+  translate persisted IDs.
+- Use `list_assets` and `get_asset` to read the File's File Assets: each has a `kind`
+  (`image`, `video`, or `model`) and, where they apply, `width`, `height`, and
+  `duration`. To add new bytes, call `create_asset_upload` with their SHA-256 `hash`, `mime`,
+  and `size`; Stewdio reads the kind and dimensions from the bytes.
+  With `status: "upload"`, PUT the bytes to `upload.url` with `upload.headers`,
+  then call `create_assets` with `fileId` and
+  `items: [{ source: { uploadId: upload.uploadId }, name }]`. With
+  `status: "existing"`, a File you can read already has these bytes as an Asset: call
+  `create_assets` with the returned `source` instead of uploading. If an Upload expires or fails,
+  call `create_asset_upload` again.
+- Place media using the returned `hash` and native dimensions. To add a File Asset
+  from another File you can read, call `create_assets` with
+  `source: { fileId, hash }`; no bytes are copied and the Asset keeps the same hash,
+  so copied nodes need no changes. If the File already has the Asset, its existing
+  File Asset is returned, so retrying is safe. Results follow the input order.
+  Use `rename_asset` for names. File Assets stay with their File; node deletion
+  and undo do not remove them.
+- Give each `write_xml` call a new UUID `mutationId`. After a lost response,
+  retry with the same `mutationId` and XML; the File applies the edit at most once.
+  Never retry old XML with a new ETag. Read again and reapply your intended changes.
 
 ## Authoring principles
 
@@ -53,7 +61,7 @@ Use the Stewdio MCP tools for the user's requested File work.
   [input authoring best practices](references/xml.md#input-authoring-best-practices)
   for choosing controls, labels, defaults, and ranges.
 - Also read the [Graphic reference](references/graphic.md) before writing or debugging
-  Graphic scripts. It covers renderer lifecycle, drawing, fonts, bound File assets,
+  Graphic scripts. It covers renderer lifecycle, drawing, fonts, File Asset inputs,
   and rendering checks.
 
 Inspect the exact target with `read_xml` before editing. Write the smallest subtree
@@ -67,7 +75,7 @@ ETag for another update. In hosts with MCP Apps, use `open_stewdio`:
 
 | Arguments            | Destination                                                                       |
 | -------------------- | --------------------------------------------------------------------------------- |
-| `{}`                 | File library; optionally supply `query`, `organizationId`, `limit`, or `cursor`.  |
+| `{}`                 | File library; optionally supply `query`, `limit`, or `cursor`.                    |
 | `{ fileId }`         | Existing File in the editor.                                                      |
 | `{ fileId, nodeId }` | Read-only preview of the node and its descendants, with playback where available. |
 

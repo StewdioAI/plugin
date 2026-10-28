@@ -9,10 +9,10 @@ an editor that saves as you work, and inline node previews.
 
 ## What you can do
 
-- Find Files by name across your organizations, or create a new File.
+- Find your Files by name, or create a new File.
 - Inspect a File or any node subtree as XML, then make targeted edits that preserve
   unrelated content.
-- Write and debug Graphic scripts, including drawing, fonts, and bound File assets.
+- Write and debug Graphic scripts, including drawing, fonts, and File Asset inputs.
 - Open the File library, the File editor, or a node preview in the conversation.
 
 The plugin connects the hosted Stewdio MCP server and bundles the
@@ -21,10 +21,9 @@ subtree editing, inputs, clips, animations, and Graphic renderer scripts.
 
 ## Requirements
 
-You need a Stewdio account with an active organization membership and an assistant
-that supports remote MCP servers with OAuth sign-in. You can access only your own
-Files in your active organizations. Creating and editing Files is subject to your
-organization's Stewdio plan. The Stewdio desktop application is not required.
+You need a Stewdio account and an assistant that supports remote MCP servers with
+OAuth sign-in. You can access only your own Files. Creating and editing Files is
+subject to your Stewdio plan. The Stewdio desktop application is not required.
 
 ## Setup
 
@@ -44,25 +43,23 @@ claude plugin install stewdio --marketplace StewdioAI/plugin --scope user
 - "Create a Stewdio File named Launch animation."
 - "Open my Launch animation File and help me animate a Graphic."
 
-If you belong to multiple organizations, say which one should own a new File. Ask
-your assistant to inspect a File before editing it: XML writes replace the targeted
+Ask your assistant to inspect a File before editing it: XML writes replace the targeted
 node subtree and remove omitted descendants, except that nodes marked
 `collapsed="true"` preserve their hidden content. Updating a subtree requires the
 ETag from a read of that same root node; if the File changed, read again before
 reapplying the edit. Edits in the embedded editor save as you work.
 
-| Tool                                            | Purpose                                                                                                    |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `get_file_capabilities`                         | Discover the File format, generation and required client capability before edits.                          |
-| `list_assets`, `get_asset`                      | Read authorized asset metadata separately from node XML.                                                   |
-| `prepare_asset_upload`, `complete_asset_upload` | Upload and finalize bytes before placing media.                                                            |
-| `rename_asset`, `remove_asset`                  | Manage catalog metadata with retention semantics.                                                          |
-| `list_files`                                    | Search and paginate your Files and their organizations.                                                    |
-| `create_file`                                   | Create a File with an initial Page.                                                                        |
-| `read_xml`                                      | Read a File or node subtree as XML.                                                                        |
-| `write_xml`                                     | Create or update a node subtree using XML.                                                                 |
-| `open_stewdio`                                  | Open the File library, a File editor, or a read-only node preview in an MCP Apps host.                     |
-| `get_api_access`                                | Give the embedded app short-lived access to the regular API in an organization; available only to the app. |
+| Tool                                   | Purpose                                                                                 |
+| -------------------------------------- | --------------------------------------------------------------------------------------- |
+| `list_assets`, `get_asset`             | Read a File's File Assets separately from node XML.                                     |
+| `create_asset_upload`, `create_assets` | Upload bytes, or add File Assets from other Files, before placing media.                |
+| `rename_asset`                         | Rename a File Asset independently of node history.                                      |
+| `list_files`                           | Search and paginate your Files.                                                         |
+| `create_file`                          | Create a File with an empty canvas.                                                     |
+| `read_xml`                             | Read a File or node subtree as XML.                                                     |
+| `write_xml`                            | Create or update a node subtree using XML.                                              |
+| `open_stewdio`                         | Open the File library, a File editor, or a read-only node preview in an MCP Apps host.  |
+| `get_api_access`                       | Give the embedded app short-lived access to the regular API; available only to the app. |
 
 `open_stewdio` selects its destination from the supplied IDs:
 
@@ -72,7 +69,7 @@ reapplying the edit. Edits in the embedded editor save as you work.
 | `{ fileId }`         | Existing File in the editor.                       |
 | `{ fileId, nodeId }` | Read-only preview of the node and its descendants. |
 
-Library calls accept `query`, `organizationId`, `limit`, and `cursor`, just like
+Library calls accept `query`, `limit`, and `cursor`, just like
 `list_files`. Both search File names without regard to case and return up to 100
 Files per page, most recently updated first. Library filters and pagination
 cannot be combined with `fileId`; `nodeId` requires `fileId`.
@@ -89,25 +86,24 @@ change its contents; edits in the editor save to the existing File.
 The plugin bundles one skill and configures a remote server; it installs no
 local server, hooks, scripts, or package dependencies. Your host sends tool
 arguments and OAuth credentials to `https://mcp.stewdio.ai/mcp`. Arguments can
-include File and organization IDs, File names, XML, and Graphic scripts. The server
+include File and node IDs, File names, XML, and Graphic scripts. The server
 returns File metadata, requested File content, and UI resources to the host. File
 writes are stored by Stewdio. Sign-in uses WorkOS through `https://signin.stewdio.ai`.
 
 In MCP Apps hosts, the embedded UI runs in the host's sandbox, connects to
 `https://api.stewdio.ai` and `wss://api.stewdio.ai` for authorized File operations
 and live synchronization, and retrieves UI assets and thumbnails from
-`https://mcp.stewdio.ai`. Asset imports
-upload selected files to Stewdio's Cloudflare R2 storage; asset reads and uploads
+`https://mcp.stewdio.ai`. Uploads
+send selected files to Stewdio's Cloudflare R2 storage; Asset downloads and Uploads
 use signed URLs on `29117f3a6e767d87fa15ea697a7dbec9.r2.cloudflarestorage.com`.
 File access credentials are supplied to the embedded app separately from
 model-visible tool results.
 
 Graphic scripts execute in an isolated iframe at `https://stewdiousercontent.com`,
 a Stewdio domain kept separate from `stewdio.ai` so that scripts can't reach your
-account. Depending on the File's content, rendering can fetch public modules and
-resources from `esm.sh`, `cdn.jsdelivr.net`, `unpkg.com`, and `threejs.org`, and
-fonts from `fonts.googleapis.com` and `fonts.gstatic.com`. These public resource
-requests omit credentials. **Open externally** in the editor menu opens File links
+account. Depending on the File's content, rendering can fetch public modules,
+fonts, and other resources from `esm.sh` and `cdn.jsdelivr.net` only. These public
+resource requests omit credentials. **Open externally** in the editor menu opens File links
 on `https://www.stewdio.ai`; exports use the host's download capability when available.
 
 See the [privacy policy](https://www.stewdio.ai/privacy) for data handling and the
@@ -126,9 +122,8 @@ an asset; release validation reads manifest versions. Neither executes the icon.
   Code, inspect `/plugin` and `/mcp`, then follow the host's reload instructions.
 - **Sign-in expired or failed:** reconnect the Stewdio server through your host's
   OAuth flow and sign in with the intended Stewdio account.
-- **File unavailable or access forbidden:** confirm that you own the File and
-  have an active membership in its organization. For creation or editing errors,
-  check your organization and plan in Stewdio.
+- **File unavailable or access forbidden:** confirm that you own the File. For
+  creation or editing errors, check your plan in Stewdio.
 - **Editor or preview unavailable:** open the returned File URL in Stewdio, or use
   **Open externally** in the editor menu. Embedded UI and fullscreen support depend
   on the host.

@@ -2,29 +2,22 @@
 
 Use `list_files` to find a File, or `create_file({ name })` to create one with an
 empty canvas. Each File is one canvas with no page nodes or File background property. File tools use `fileId`; creation and listing return it as `id`.
-Files belong to their creator within an active organization membership. Creation
-and writes enforce the organization's billing and File/composition limits.
+Files are private to their creator. Creation and writes enforce the creator's plan
+and File/composition limits.
 No open editor or desktop application is required.
-
-Call `get_file_capabilities({ fileId })` before reading or editing. Every XML
-request must include `format: 5`, `generation` from that response, and
-`capability: "nodes-assets-v5"`.
-
-A generation conflict requires a new capabilities lookup and fresh node reads.
-Never reuse IDs, XML or ETags from an earlier generation.
 
 ## Read, create, and update
 
-- `read_xml({ fileId, format: 5, generation, capability: "nodes-assets-v5", nodeId?, depth? })` returns `{ xml, etag, schemaVersion: 5, generation }`. Omit `nodeId`
+- `read_xml({ fileId, nodeId?, depth? })` returns `{ xml, etag }`. Omit `nodeId`
   for the whole File. `depth` is a nonnegative integer; omit it for all descendants.
-  Whole-File reads contain top-level nodes directly inside `<file schema-version="5">`. At whole-File `depth: 0`, these nodes are collapsed; each additional depth expands another level. Use `list_assets` and `get_asset` for asset metadata.
+  Whole-File reads contain top-level nodes directly inside `<file>`. At whole-File `depth: 0`, these nodes are collapsed; each additional depth expands another level. Use `list_assets` and `get_asset` for asset metadata.
 - Read a known target directly with `read_xml({ fileId, nodeId })` to get its full
   subtree. For discovery in a large File, use a limited `depth` for an overview,
   then read the relevant node without `depth`. A collapsed node's ID can be used
   immediately; there is no need to expand each intermediate level. Omit both
   `nodeId` and `depth` when the task needs the complete File.
-- `write_xml({ fileId, format: 5, generation, capability: "nodes-assets-v5", xml, parentId?, ifMatch? })` accepts exactly one section,
-  composition, graphic, image, or video subtree. `<file>` is inspection-only. `<page>`, `<pages>`, and asset catalog records are not supported. There is no standalone animation write.
+- `write_xml({ fileId, mutationId, xml, parentId?, ifMatch? })` accepts exactly one section,
+  composition, graphic, image, or video subtree. `<file>` is inspection-only. `<page>`, `<pages>`, and File Asset records are not supported. There is no standalone animation write.
 - To create, omit the root `id`. New nodes go under `parentId`; omit it or use `null` to create at the File root. Omit IDs
   throughout a copied subtree to create fresh nodes. Keep asset references.
 - To update, read the target subtree first and keep its root `id` and element type.
@@ -43,8 +36,10 @@ Never reuse IDs, XML or ETags from an earlier generation.
   Parser diagnostics return `{ ok: false, diagnostics }` with code, message, line,
   and column. Tool failures set `isError: true`. Rejected writes leave content
   unchanged; successful writes persist and appear in connected editors.
-- After losing a write response, read the affected subtree or its parent before
-  retrying: a repeated creation can create a duplicate.
+- `mutationId` is a new UUID for each edit. After losing a write response, retry
+  the same XML with the same `mutationId`: an edit that was already saved returns
+  its result, including the created `nodeId`, without applying again. A new
+  `mutationId` is a new edit, so a repeated creation would create a duplicate.
 
 ## Replacement semantics
 
@@ -54,10 +49,10 @@ sibling order. On an expanded Graphic, the `<input>` elements replace its entire
 input map, so omitted inputs are removed too.
 
 Omitted scalar/box attributes on existing nodes keep their values. Omitting a
-Graphic's `<script>` preserves its script; omitting `<asset-bindings>` preserves
-its bindings. `<asset-bindings />` explicitly clears them. New nodes use editor
-defaults for omitted properties; a new Graphic has no inputs or bindings and a
-script that clears its drawing surface.
+Graphic's `<script>` preserves its script. Asset references live on `<input>`
+elements, so an expanded Graphic's inputs carry every reference it keeps. New
+nodes use editor defaults for omitted properties; a new Graphic has no inputs
+and a script that clears its drawing surface.
 
 Depth-limited reads emit self-closing nodes with `id` and `collapsed="true"`.
 Keep that flag to retain all hidden descendants, inputs, and animations while
@@ -80,10 +75,8 @@ establishes parentage; do not supply `parentId`, `type`, or `indexKey` as XML at
 | ---------------- | ----------------------------------------------------------- | --------------------------------------------- |
 | `section`        | `id`, `name`, `background`, box                             | section, composition, graphic, image, video   |
 | `composition`    | `id`, `name`, `background`, `duration`, box, clip           | animation, composition, graphic, image, video |
-| `graphic`        | `id`, `name`, box, clip                                     | asset-bindings, script, input, animation      |
+| `graphic`        | `id`, `name`, box, clip                                     | script, input, animation                      |
 | `image`, `video` | `id`, `name`, `asset`, box, clip                            | animation                                     |
-| `asset-bindings` | none                                                        | asset                                         |
-| `asset`          | `name`, `ref`                                               | none                                          |
 | `script`         | none                                                        | JavaScript text, preferably CDATA             |
 | `input`          | `key`, `type`, optional `label`, type-specific values below | text or option elements                       |
 | `option`         | none                                                        | text                                          |
@@ -100,7 +93,7 @@ Box attributes are `position="x y"`, `size="width height"`, `scale="x y"`,
 Position and size are in the parent's local coordinate system; scale is a
 multiplier, anchor is a fraction of the node's size, rotation is in degrees,
 and opacity is in `0..1`. Defaults are position `0 0`, size `100 100`, scale
-`1 1`, anchor `0.5 0.5`, rotation `0`, opacity `1`. Supply image/video `size` from the catalog
+`1 1`, anchor `0.5 0.5`, rotation `0`, opacity `1`. Supply image/video `size` from the File Asset
 media dimensions; XML cannot infer geometry from external metadata. Default composition duration is 5 seconds.
 
 Colors accept `#RRGGBB`, `#RRGGBBAA`, or four whitespace-separated RGBA numbers
@@ -109,19 +102,19 @@ color keyframes. CSS color names, short hex, and `rgba(...)` are not XML colors.
 
 Node IDs include their canonical type prefix and eight lowercase alphanumeric characters,
 such as `graphic:a1b2c3d4`. Use IDs from reads when editing. New image/video
-layers require `asset` pointing to an existing asset of the matching kind in the
+layers require `asset` set to the hash of a File Asset of the matching kind in the
 same File. Existing layers may omit `asset` to retain it.
 
-Asset metadata and bytes are external to the File. Use `list_assets` and
-`get_asset` with the same admission fields, then use the returned opaque
-`assetRef` in an image/video `asset` attribute or Graphic asset binding.
-Use `prepare_asset_upload`, upload the bytes when requested, and
-`complete_asset_upload` before placing media. Never derive a ref from a hash or
-reuse another File's ref. References must be authorized for the destination.
+File Assets are separate from File XML. Use `list_assets` and
+`get_asset` with the File ID, then use the returned
+`hash` in an image/video `asset` attribute or a Graphic asset input's `ref`.
+Use `create_asset_upload`, upload the bytes when requested, and
+`create_assets` before placing media. An Asset's `hash` is the SHA-256 of its bytes and is the same
+in every File, but the destination File needs its own File Asset first; add one from another File
+with `create_assets` and `source: { fileId, hash }`.
 
-Catalog rename/remove operations are separate from node XML and node undo.
-Removing an asset from the library retains existing node/script references and
-recoverable content. See [Graphic scripts](graphic.md) for bindings.
+Renaming a File Asset is separate from node XML and node undo. File Assets remain
+in their File when nodes are removed. See [Graphic scripts](graphic.md) for asset inputs.
 
 ## Clips and animations
 
@@ -160,15 +153,16 @@ time argument: animate a numeric input and read its sampled value in the script.
 
 Read the bundled [Graphic reference](graphic.md)
 before authoring a script. Scripts
-use `export default defineRenderer({ setup, render, dispose })` in an isolated browser iframe;
-HTML/CSS and DOM rendering are unsupported.
+use `export default defineRenderer((graphic) => ({ render() {...} }))` in an
+isolated browser iframe; HTML/CSS and DOM rendering are unsupported.
 
 Put JavaScript inside `<script><![CDATA[...]]></script>`. CDATA preserves script
 text; split a literal `]]>` into `]]]]><![CDATA[>`. Escape XML special characters
 in ordinary text and attributes, including `&amp;`, `&lt;`, and `&quot;` as needed.
 
 Each input requires `key` and `type`; keys match `[a-z][a-zA-Z0-9]*`. Optional
-`label` must be nonempty. Runtime inputs contain values, not declaration objects.
+`label` must be nonempty. Runtime inputs contain values or asset handles, not
+declaration objects.
 
 | Type      | Value                              | Additional syntax                            |
 | --------- | ---------------------------------- | -------------------------------------------- |
@@ -177,6 +171,13 @@ Each input requires `key` and `type`; keys match `[a-z][a-zA-Z0-9]*`. Optional
 | `color`   | color `value`                      | normalized RGBA object at runtime            |
 | `boolean` | `value="true"` or `value="false"`  | no child elements                            |
 | `select`  | `value` matching an option         | one or more `<option>text</option>` children |
+| `image`   | optional `ref` to an image asset   | no `value`; `ImageInput` handle or `null`    |
+| `video`   | optional `ref` to a video asset    | no `value`; `VideoInput` handle or `null`    |
+| `model`   | optional `ref` to a model asset    | no `value`; `ModelInput` handle or `null`    |
+
+Asset inputs reference File Assets by `hash`; omit `ref` to declare
+an unset input that the script reads as `null`. Use a `hash` from `list_assets`
+or `get_asset` for the same File as the `ref`. Asset inputs cannot have animation tracks.
 
 ### Input authoring best practices
 
@@ -195,17 +196,17 @@ Each input requires `key` and `type`; keys match `[a-z][a-zA-Z0-9]*`. Optional
 - Choose the type that fits the control: `string` for editable copy, `color` for
   colors, `boolean` for toggles, `select` for a finite set of supported choices,
   and `number` for quantities. Prefer a select over free text when only certain
-  values are valid. For asset choices, use binding names as select values and
-  declare every selectable asset in `<asset-bindings>`; inputs do not hold assets.
+  values are valid. Use `image`, `video`, and `model` inputs for File Assets so
+  users can swap them in the editor; declare one input per selectable asset.
 - Set initial values that produce the intended design before any animation runs.
   Give numbers meaningful `min`, `max`, and `step` values where appropriate;
   for example, `0..1` with step `0.01` for normalized progress, or step `1` for
   counts. Keep initial values and authored keyframes within the intended range.
   Handle any bounds needed for valid rendering in the script rather than relying
   on control metadata to protect calculations.
-- Read editable values from `inputs` in `render`, so changes affect the next
-  frame. Do not hardcode a second copy of those values or cache them only during
-  setup. Handle valid edge values, such as empty copy or a zero count, without
+- Read editable values from `graphic.inputs` in `render`, so changes affect the
+  next frame. Do not hardcode a second copy of those values or cache them in the
+  factory. Handle valid edge values, such as empty copy or a zero count, without
   replacing them with defaults through truthiness checks.
 - For custom motion, animate a meaningful input such as `reveal`, `bend`, or
   `sourceTime` in seconds through XML. Derive the frame from its sampled value so
@@ -220,33 +221,29 @@ Each input requires `key` and `type`; keys match `[a-z][a-zA-Z0-9]*`. Optional
 ## Complete example
 
 Create this subtree with `write_xml` at the File root. It declares all five
-input types and animates a number input and a box field. Read the returned
+scalar input types and animates a number input and a box field. Read the returned
 `nodeId` before updating it. Users can inspect playback, including backward seeks,
 in Stewdio's editor.
 
 ```xml
 <composition name="Intro" duration="4" size="800 450" background="#172033">
   <graphic name="Title" position="80 150" size="640 150" clip-start="0" clip-duration="4" clip-trim="0">
-    <asset-bindings />
-    <script><![CDATA[export default defineRenderer({
-  setup({ canvas }) {
-    const context = canvas.getContext("2d");
-    if (context === null) throw new Error("Canvas 2D is unavailable");
-    return context;
-  },
-  render({ canvas, state: context, inputs, width, height, pixelRatio }) {
-    context.setTransform(1, 0, 0, 1, 0, 0);
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    const color = inputs.tint;
-    context.fillStyle = `rgba(${color.r * 255},${color.g * 255},${color.b * 255},${color.a})`;
-    context.font = (inputs.bold ? "700 " : "400 ") + inputs.fontSize + "px sans-serif";
-    context.textAlign = inputs.align;
-    context.textBaseline = "middle";
-    const x = inputs.align === "center" ? width / 2 : 20;
-    context.fillText(inputs.title, x, height / 2, width - 80);
-  },
-  dispose() {}
+    <script><![CDATA[export default defineRenderer((graphic) => {
+  const context = graphic.canvas.getContext("2d");
+  if (context === null) throw new Error("Canvas 2D is unavailable");
+  return {
+    render() {
+      // The host has already reset, cleared, and density-scaled this surface.
+      const { size, inputs } = graphic;
+      const color = inputs.tint;
+      context.fillStyle = `rgba(${color.r * 255},${color.g * 255},${color.b * 255},${color.a})`;
+      context.font = (inputs.bold ? "700 " : "400 ") + inputs.fontSize + "px sans-serif";
+      context.textAlign = inputs.align;
+      context.textBaseline = "middle";
+      const x = inputs.align === "center" ? size.width / 2 : 20;
+      context.fillText(inputs.title, x, size.height / 2, size.width - 80);
+    },
+  };
 });]]></script>
     <input key="title" type="string" label="Title">Hello &amp; welcome</input>
     <input key="fontSize" type="number" label="Font size (px)" value="48" min="16" max="64" step="1" />

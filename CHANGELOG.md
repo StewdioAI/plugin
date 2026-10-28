@@ -1,5 +1,18 @@
 # plugin
 
+## 0.4.0
+
+### Minor Changes
+
+- 616e8d9: Document the schema v6 Graphic authoring contract: scripts export `defineRenderer((graphic) => ({ render, dispose? }))` and acquire their own context in the factory, the host pre-scales Canvas 2D surfaces so scripts draw in logical `graphic.size` units, File Assets are declared as typed `image`, `video`, and `model` inputs with `ref` and read as synchronous handles from `graphic.inputs`, fonts load through `FontFace` from the two allowed origins (esm.sh and jsDelivr), and XML tools use `format: 6` with `nodes-assets-v6`. The `{ setup, render, dispose }` object form, `<asset-bindings>`, `assets.get()`, and `loadFont` are removed.
+- 616e8d9: XML and asset tools no longer use a File `generation`: `get_file_capabilities`, `read_xml`, and asset tools drop it, and ETags no longer embed it. `write_xml` accepts a `mutationId` UUID; retrying a lost write with the same `mutationId` returns the saved result without applying the edit twice.
+- 616e8d9: Use resource-oriented asset tools: upload new bytes or add assets you can already read from another File, and keep library assets for the lifetime of their File. Asset tools identify an asset by its `hash`, the SHA-256 of its bytes, which stays the same in every File. Each asset reports its `kind` and, where they apply, `width`, `height`, and `duration` directly.
+
+### Patch Changes
+
+- 616e8d9: Describe File Assets, Uploads, and personal File ownership consistently in the Stewdio skill and plugin usage, and remove outdated organization references.
+- 616e8d9: Update Stewdio tools to read and edit Files without file-format or capability negotiation.
+
 ## 0.3.0
 
 ### Minor Changes
