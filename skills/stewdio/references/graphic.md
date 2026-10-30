@@ -25,7 +25,7 @@ export default defineRenderer((graphic) => {
   if (context === null) throw new Error("Canvas 2D is unavailable");
   return {
     render() {
-      // Draw one complete frame from graphic.inputs and graphic.size.
+      // Draw one complete frame from input values and graphic.size.
     },
     dispose() {
       // Optional: release resources the factory created.
@@ -54,11 +54,12 @@ context fails the mount with a visible diagnostic.
 | `size`       | Logical `{ width, height }`, the unit Canvas 2D scripts draw in.                              |
 | `pixelRatio` | Physical pixels per logical unit for this render; differs between preview and export.         |
 | `canvas`     | An `OffscreenCanvas` sized to `max(1, round(size * pixelRatio))`; the physical backing store. |
-| `inputs`     | Resolved input values and asset handles; see below.                                           |
+| `inputs`     | One stable handle per declared input; see below.                                              |
 
-The host refreshes `size`, `pixelRatio`, the backing dimensions, and scalar
-inputs before each render and keeps them fixed until the call settles. Read
-them inside `render`; do not copy them out of the factory.
+The host refreshes `size`, `pixelRatio`, the backing dimensions, and each scalar
+input's `value` before each render and keeps them fixed until the call settles.
+Read them inside `render`; do not copy them out of the factory. Input handles
+themselves stay the same for the whole mount, so the factory may keep them.
 
 Native browser APIs such as `atob`, `btoa`, `document`, `window`,
 `navigator.gpu`, WebAssembly, dynamic code generation, and timers are available.
@@ -73,7 +74,7 @@ Do not use experimental `requestPaint`, `drawElementImage`, or `layoutsubtree` A
 The host recreates the instance after script edits or asset reference, content,
 or availability changes, including a missing asset becoming available, and may
 recreate it for resource management or GPU context loss. Ordinary scalar input
-changes only update `graphic.inputs`. Do not depend on module re-evaluation for
+changes only update each handle's `value`. Do not depend on module re-evaluation for
 animation state. Release GPU devices, listeners, timers, and other resources in
 `dispose`; if the factory throws before returning, clean up what it already
 acquired. Disposal is not guaranteed to finish on failure, and iframe recovery
@@ -81,7 +82,7 @@ cannot reliably interrupt an infinite loop.
 
 ## Drawing and seeking
 
-Treat the visible frame as a pure function of `graphic.inputs`, referenced
+Treat the visible frame as a pure function of input values, referenced
 assets, and `graphic.size`. The closure may hold rendering resources or caches,
 but rendering the same values must produce the same result regardless of prior
 calls. Read editable values in `render`; do not advance a private animation loop
@@ -110,11 +111,44 @@ argument. Declare a number input and animate it in XML when needed; even an
 input called `time` has no special behavior. Outside a composition, inputs keep
 their stored values and their animations are dormant.
 
-Scalar inputs hold sampled values: `number` becomes a number; `string`/`select`
-become strings; `boolean` becomes a boolean; `color` becomes `{ r, g, b, a }`
-with channels in `0..1`. Convert colors to CSS strings for Canvas 2D styles.
-Reading an undeclared key from `graphic.inputs` throws; `graphic.inputs` is
-read-only. Repeated values and backward seeks must produce the same frame.
+## Inputs
+
+Every key of `graphic.inputs` is a frozen handle with `kind`, the declared
+type, and `label`. Narrow on `kind` when a helper accepts several handles.
+Scalar handles expose the sampled value as `value`, a property, not a method:
+
+| Kind      | `value`                                  | Other metadata       |
+| --------- | ---------------------------------------- | -------------------- |
+| `number`  | A number                                 | `min`, `max`, `step` |
+| `color`   | Frozen `{ r, g, b, a }`, channels `0..1` |                      |
+| `string`  | A string                                 |                      |
+| `boolean` | A boolean                                |                      |
+| `select`  | One of `options`                         | `options`            |
+
+Metadata absent from the declaration is `undefined`. Convert colors to CSS
+strings for Canvas 2D styles.
+
+```js
+export default defineRenderer((graphic) => {
+  const context = graphic.canvas.getContext("2d");
+  const { speed, tint, title } = graphic.inputs; // Handles are safe to keep.
+  return {
+    render() {
+      const { r, g, b, a } = tint.value;
+      context.fillStyle = `rgb(${r * 255} ${g * 255} ${b * 255} / ${a})`;
+      context.rotate(speed.value);
+      context.fillText(title.value, 0, 0);
+    },
+  };
+});
+```
+
+A handle is never the value itself: `speed * 2` is `NaN`, `title` in a template
+is `[object Object]`, and every handle is truthy. A write rejects scripts that
+use a scalar handle as a value, for example in arithmetic, comparisons,
+conditions, templates, property assignments, or browser API arguments. Read
+`.value` instead. Reading an undeclared key from `graphic.inputs` throws;
+`graphic.inputs` is read-only. Repeated values and backward seeks must produce the same frame.
 Avoid accumulated animation progress, wall clocks, and unseeded randomness.
 Complete asynchronous drawing before the render promise resolves.
 
@@ -132,8 +166,10 @@ No other origin is permitted, including unpkg, threejs.org, and Google Fonts.
 Dependencies and redirected requests must also comply with CSP and CORS. Bare
 package imports and Node.js built-ins are unavailable.
 
-There is no `loadFont` global. Load fonts with the browser's own API from an
-allowed origin inside the factory, then use the family in canvas text:
+There is no `loadFont` global. To let users pick a typeface, declare a font
+input (see [Font inputs](#font-inputs)). To hard-code a font from an allowed
+origin, use the browser's own API inside the factory, then use the family in
+canvas text:
 
 ```js
 const face = new FontFace(
@@ -143,8 +179,42 @@ const face = new FontFace(
 document.fonts.add(await face.load());
 ```
 
-Font URLs are external resources, not File assets. Font asset inputs are not
-available in this release.
+Font URLs are external resources, not File assets.
+
+## Font inputs
+
+Declare a user-selectable Google font face as
+`<input key="heading" type="font" font="Inter" font-weight="700" font-style="italic" />`.
+`font` is a Google Fonts family name; `font-weight` defaults to `400` and
+`font-style` (`normal` or `italic`) to `normal`. Font inputs cannot be animated;
+a different face remounts the Graphic, so its handle is fixed for the mount and
+the face can be loaded once in the factory.
+
+`graphic.inputs.heading` is never `null`. It carries `kind: "font"`, `label`,
+`family`, `weight`, `style`, and `mime: "font/woff2"`, and loads the face's
+single WOFF2 file on demand:
+
+- `await handle.load()` adds the face to `document.fonts` and returns a CSS
+  font family for Canvas 2D, such as `` context.font = `48px ${family}` ``. The
+  family names exactly this face, so the font shorthand needs no weight or style.
+- `await handle.arrayBuffer()` returns a fresh WOFF2 copy the script owns, for
+  libraries that parse font files.
+
+```js
+export default defineRenderer(async (graphic) => {
+  const context = graphic.canvas.getContext("2d");
+  const family = await graphic.inputs.heading.load();
+  return {
+    render() {
+      context.font = `48px ${family}`;
+      context.fillText(graphic.inputs.title.value, 24, 72);
+    },
+  };
+});
+```
+
+Like asset operations, both methods resolve `null` outside an active factory or
+render call and reject when the face is unknown or its file fails to load.
 
 ## Asset inputs
 
@@ -158,6 +228,7 @@ turn a URL into one. The former `<asset-bindings>` element and `assets.get()`
 no longer exist.
 
 `graphic.inputs.logo` synchronously returns a kind-specific handle or `null`.
+Asset handles have no `value`; they load media through their methods.
 Reading a handle performs no network I/O or decoding; media loads only when a
 handle method runs. Declare an input for every asset any code branch can use.
 A declared kind that does not match the referenced asset fails the mount. Reuse
@@ -168,6 +239,8 @@ handles for the whole mount, but request frames or bytes in the current call.
 | `image` | `id`, `name`, `hash`, `mime`, `width`, `height`   | `await handle.frame()` or `await handle.frame({ width, height })`  |
 | `video` | image metadata plus source `duration` in seconds  | `await handle.frame({ time })` with explicit finite source seconds |
 | `model` | `id`, `name`, `hash`, `mime: "model/gltf-binary"` | `await handle.arrayBuffer()`                                       |
+
+Every asset handle also carries `kind` and `label`.
 
 For SVG images, request the pixel dimensions you will draw at output density:
 
@@ -198,7 +271,7 @@ parse once in the factory and retain the parsed resources in the closure.
 Asset operations outside an active factory or render call, including during
 `dispose`, resolve `null`. Loading and decoding failures reject rather than
 substituting a different frame. Videos never infer a clock: use a declared
-number input, for example `clip.frame({ time: graphic.inputs.sourceTime })`.
+number input, for example `clip.frame({ time: graphic.inputs.sourceTime.value })`.
 Several source moments may be requested in one render.
 
 ## Check rendering
@@ -238,7 +311,7 @@ you want to keep when replacing its XML.
   return {
     async render() {
       const { size, inputs } = graphic;
-      const reveal = Math.max(0, Math.min(1, inputs.reveal));
+      const reveal = Math.max(0, Math.min(1, inputs.reveal.value));
       if (reveal === 0 || inputs.logo === null) return;
       const frame = await inputs.logo.frame();
       if (frame === null) return;

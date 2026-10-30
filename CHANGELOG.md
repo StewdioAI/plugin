@@ -1,5 +1,12 @@
 # plugin
 
+## 0.5.0
+
+### Minor Changes
+
+- c93b2f0: Document Graphic font inputs: `<input type="font" font="Inter" font-weight="700" font-style="italic" />` lets users pick a Google font face, and scripts load it with `graphic.inputs.key.load()` for Canvas 2D or `graphic.inputs.key.arrayBuffer()` for the WOFF2 file.
+- c93b2f0: Document uniform Graphic input handles: every key of `graphic.inputs` is a stable handle with `kind` and `label`, scalar inputs read their sampled value as `.value` (for example `graphic.inputs.speed.value`), number handles expose `min`, `max`, and `step`, and select handles expose `options`. Handles can be kept from the factory. Scripts that use a scalar input as a plain value are rejected on write.
+
 ## 0.4.0
 
 ### Minor Changes

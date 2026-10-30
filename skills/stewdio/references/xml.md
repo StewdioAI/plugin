@@ -161,19 +161,20 @@ text; split a literal `]]>` into `]]]]><![CDATA[>`. Escape XML special character
 in ordinary text and attributes, including `&amp;`, `&lt;`, and `&quot;` as needed.
 
 Each input requires `key` and `type`; keys match `[a-z][a-zA-Z0-9]*`. Optional
-`label` must be nonempty. Runtime inputs contain values or asset handles, not
-declaration objects.
+`label` must be nonempty. At runtime each input is a handle: scalar handles read
+the sampled value as `.value`, and asset and font handles load files through methods.
 
-| Type      | Value                              | Additional syntax                            |
-| --------- | ---------------------------------- | -------------------------------------------- |
-| `string`  | element text, including empty text | no `value` attribute; CDATA or escaped text  |
-| `number`  | numeric `value`                    | optional `min`, `max`, positive `step`       |
-| `color`   | color `value`                      | normalized RGBA object at runtime            |
-| `boolean` | `value="true"` or `value="false"`  | no child elements                            |
-| `select`  | `value` matching an option         | one or more `<option>text</option>` children |
-| `image`   | optional `ref` to an image asset   | no `value`; `ImageInput` handle or `null`    |
-| `video`   | optional `ref` to a video asset    | no `value`; `VideoInput` handle or `null`    |
-| `model`   | optional `ref` to a model asset    | no `value`; `ModelInput` handle or `null`    |
+| Type      | Value                              | Additional syntax                                        |
+| --------- | ---------------------------------- | -------------------------------------------------------- |
+| `string`  | element text, including empty text | no `value` attribute; CDATA or escaped text              |
+| `number`  | numeric `value`                    | optional `min`, `max`, positive `step`                   |
+| `color`   | color `value`                      | normalized RGBA `.value` at runtime                      |
+| `boolean` | `value="true"` or `value="false"`  | no child elements                                        |
+| `select`  | `value` matching an option         | one or more `<option>text</option>` children             |
+| `image`   | optional `ref` to an image asset   | no `value`; `ImageInput` handle or `null`                |
+| `video`   | optional `ref` to a video asset    | no `value`; `VideoInput` handle or `null`                |
+| `model`   | optional `ref` to a model asset    | no `value`; `ModelInput` handle or `null`                |
+| `font`    | required `font` family             | optional `font-weight`, `font-style`; `FontInput` handle |
 
 Asset inputs reference File Assets by `hash`; omit `ref` to declare
 an unset input that the script reads as `null`. Use a `hash` from `list_assets`
@@ -204,9 +205,9 @@ or `get_asset` for the same File as the `ref`. Asset inputs cannot have animatio
   counts. Keep initial values and authored keyframes within the intended range.
   Handle any bounds needed for valid rendering in the script rather than relying
   on control metadata to protect calculations.
-- Read editable values from `graphic.inputs` in `render`, so changes affect the
-  next frame. Do not hardcode a second copy of those values or cache them in the
-  factory. Handle valid edge values, such as empty copy or a zero count, without
+- Read editable values as `graphic.inputs.key.value` in `render`, so changes
+  affect the next frame. Do not hardcode a second copy of those values or cache
+  a `.value` in the factory; keeping the handle itself is safe. Handle valid edge values, such as empty copy or a zero count, without
   replacing them with defaults through truthiness checks.
 - For custom motion, animate a meaningful input such as `reveal`, `bend`, or
   `sourceTime` in seconds through XML. Derive the frame from its sampled value so
@@ -235,13 +236,14 @@ in Stewdio's editor.
     render() {
       // The host has already reset, cleared, and density-scaled this surface.
       const { size, inputs } = graphic;
-      const color = inputs.tint;
+      const color = inputs.tint.value;
+      const align = inputs.align.value;
       context.fillStyle = `rgba(${color.r * 255},${color.g * 255},${color.b * 255},${color.a})`;
-      context.font = (inputs.bold ? "700 " : "400 ") + inputs.fontSize + "px sans-serif";
-      context.textAlign = inputs.align;
+      context.font = (inputs.bold.value ? "700 " : "400 ") + inputs.fontSize.value + "px sans-serif";
+      context.textAlign = align;
       context.textBaseline = "middle";
-      const x = inputs.align === "center" ? size.width / 2 : 20;
-      context.fillText(inputs.title, x, size.height / 2, size.width - 80);
+      const x = align === "center" ? size.width / 2 : 20;
+      context.fillText(inputs.title.value, x, size.height / 2, size.width - 80);
     },
   };
 });]]></script>
