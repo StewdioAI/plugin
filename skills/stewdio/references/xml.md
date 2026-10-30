@@ -17,7 +17,7 @@ No open editor or desktop application is required.
   immediately; there is no need to expand each intermediate level. Omit both
   `nodeId` and `depth` when the task needs the complete File.
 - `write_xml({ fileId, mutationId, xml, parentId?, ifMatch? })` accepts exactly one section,
-  composition, graphic, image, or video subtree. `<file>` is inspection-only. `<page>`, `<pages>`, and File Asset records are not supported. There is no standalone animation write.
+  composition, graphic, image, video, or audio subtree. `<file>` is inspection-only. `<page>`, `<pages>`, and File Asset records are not supported. There is no standalone animation write.
 - To create, omit the root `id`. New nodes go under `parentId`; omit it or use `null` to create at the File root. Omit IDs
   throughout a copied subtree to create fresh nodes. Keep asset references.
 - To update, read the target subtree first and keep its root `id` and element type.
@@ -71,21 +71,24 @@ or delete/reorder top-level nodes because the whole-File root is not writable.
 Names are case-sensitive; unknown elements and attributes are rejected. Nesting
 establishes parentage; do not supply `parentId`, `type`, or `indexKey` as XML attributes.
 
-| Element          | Attributes                                                  | Children                                      |
-| ---------------- | ----------------------------------------------------------- | --------------------------------------------- |
-| `section`        | `id`, `name`, `background`, box                             | section, composition, graphic, image, video   |
-| `composition`    | `id`, `name`, `background`, `duration`, box, clip           | animation, composition, graphic, image, video |
-| `graphic`        | `id`, `name`, box, clip                                     | script, input, animation                      |
-| `image`, `video` | `id`, `name`, `asset`, box, clip                            | animation                                     |
-| `script`         | none                                                        | JavaScript text, preferably CDATA             |
-| `input`          | `key`, `type`, optional `label`, type-specific values below | text or option elements                       |
-| `option`         | none                                                        | text                                          |
-| `animation`      | exactly one of `field`, `input`                             | one or more keyframe elements                 |
-| `keyframe`       | `time`, `value`, optional `easing`                          | none                                          |
+| Element       | Attributes                                                         | Children                                             |
+| ------------- | ------------------------------------------------------------------ | ---------------------------------------------------- |
+| `section`     | `id`, `name`, `background`, box, `hidden`                          | section, composition, graphic, image, video          |
+| `composition` | `id`, `name`, `background`, `duration`, box, `hidden`, sound, clip | animation, composition, graphic, image, video, audio |
+| `graphic`     | `id`, `name`, box, `hidden`, clip                                  | script, input, animation                             |
+| `image`       | `id`, `name`, `asset`, box, `hidden`, clip                         | animation                                            |
+| `video`       | `id`, `name`, `asset`, box, `hidden`, sound, clip                  | animation                                            |
+| `audio`       | `id`, `name`, `asset`, sound, clip                                 | animation                                            |
+| `script`      | none                                                               | JavaScript text, preferably CDATA                    |
+| `input`       | `key`, `type`, optional `label`, type-specific values below        | text or option elements                              |
+| `option`      | none                                                               | text                                                 |
+| `animation`   | exactly one of `field`, `input`                                    | one or more keyframe elements                        |
+| `keyframe`    | `time`, `value`, optional `easing`                                 | none                                                 |
 
-All five writable node elements also accept `collapsed="true"` with the constraints above.
-Sections cannot be placed inside compositions. Graphics, images, and videos have
-no child nodes. A composition crops its descendants to its bounds and has a
+All writable node elements also accept `collapsed="true"` with the constraints above.
+Sections cannot be placed inside compositions. Audio lives only in compositions: it has no
+box and no place on the page, only a clip on its composition's timeline. Graphics, images,
+videos, and audio have no child nodes. A composition crops its descendants to its bounds and has a
 positive `duration` in seconds; a section has no timeline.
 
 Box attributes are `position="x y"`, `size="width height"`, `scale="x y"`,
@@ -96,18 +99,25 @@ and opacity is in `0..1`. Defaults are position `0 0`, size `100 100`, scale
 `1 1`, anchor `0.5 0.5`, rotation `0`, opacity `1`. Supply image/video `size` from the File Asset
 media dimensions; XML cannot infer geometry from external metadata. Default composition duration is 5 seconds.
 
+`hidden="true"` stops a node's picture: it and its descendants are not painted, picked, or
+exported. It never stops sound. Sound attributes are `volume`, in `0..1` (default `1`), and
+`muted="true"`. A video plays its own audio track; a composition's volume and mute scale
+everything under it. A hidden video still plays its sound; a muted one still shows its picture.
+Defaults are omitted on read: `hidden` and `muted` appear only when `true`, `volume` only when
+it is not `1`. Animate `opacity` instead of `hidden` to fade a picture.
+
 Colors accept `#RRGGBB`, `#RRGGBBAA`, or four whitespace-separated RGBA numbers
 in `0..1`, such as `0.5 0.25 0 1`. Use these for `background`, color inputs, and
 color keyframes. CSS color names, short hex, and `rgba(...)` are not XML colors.
 
 Node IDs include their canonical type prefix and eight lowercase alphanumeric characters,
-such as `graphic:a1b2c3d4`. Use IDs from reads when editing. New image/video
+such as `graphic:a1b2c3d4`. Use IDs from reads when editing. New image, video, and audio
 layers require `asset` set to the hash of a File Asset of the matching kind in the
 same File. Existing layers may omit `asset` to retain it.
 
 File Assets are separate from File XML. Use `list_assets` and
 `get_asset` with the File ID, then use the returned
-`hash` in an image/video `asset` attribute or a Graphic asset input's `ref`.
+`hash` in an image, video, or audio `asset` attribute or a Graphic asset input's `ref`.
 Use `create_asset_upload`, upload the bytes when requested, and
 `create_assets` before placing media. An Asset's `hash` is the SHA-256 of its bytes and is the same
 in every File, but the destination File needs its own File Asset first; add one from another File
@@ -137,7 +147,8 @@ end. Thus start `7`, trim `3`, duration `5` is visible from parent time 10 to 15
 starting at local time 3. A nested composition clamps its local time to its own
 duration when evaluating children.
 
-`<animation field="opacity">` targets any box field. `<animation input="progress">`
+`<animation field="opacity">` targets any box field, and `<animation field="volume">` targets
+the volume of a video, audio, or composition; fade sound with volume keyframes. `<animation input="progress">`
 targets a declared Graphic input of type `number` or `color`. Each target has at
 most one animation, with no XML ID. Keyframe times are nonnegative local seconds,
 strictly increasing; their values match the target's number, pair, or color type.

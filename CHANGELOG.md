@@ -1,5 +1,11 @@
 # plugin
 
+## 0.6.0
+
+### Minor Changes
+
+- 9d689e1: Document audio nodes and node visibility in File XML: `<audio asset="…">` places a sound clip on a composition's timeline, `hidden="true"` stops a node's picture, and `volume` and `muted` set the sound of videos, audio, and compositions, with `<animation field="volume">` for fades.
+
 ## 0.5.0
 
 ### Minor Changes

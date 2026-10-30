@@ -19,7 +19,7 @@ Use the Stewdio MCP tools for the user's requested File work.
   a node may reference it only through a File Asset in its own File. Never invent or
   translate persisted IDs.
 - Use `list_assets` and `get_asset` to read the File's File Assets: each has a `kind`
-  (`image`, `video`, or `model`) and, where they apply, `width`, `height`, and
+  (`image`, `video`, `audio`, or `model`) and, where they apply, `width`, `height`, and
   `duration`. To add new bytes, call `create_asset_upload` with their SHA-256 `hash`, `mime`,
   and `size`; Stewdio reads the kind and dimensions from the bytes.
   With `status: "upload"`, PUT the bytes to `upload.url` with `upload.headers`,
@@ -42,7 +42,8 @@ Use the Stewdio MCP tools for the user's requested File work.
 ## Authoring principles
 
 - Prefer native `image` and `video` layers for media placement, playback, and
-  layer transforms. Use Graphic when the result needs custom drawing or processing.
+  layer transforms, and native `audio` layers in compositions for sound. Use
+  Graphic when the result needs custom drawing or processing.
 - Keep motion editable with XML keyframes: animate native fields for layer
   transforms and opacity, and named inputs for custom Graphic effects. Give effects
   separate tracks when users should be able to adjust their timing independently.
