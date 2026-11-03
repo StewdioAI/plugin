@@ -1,5 +1,11 @@
 # plugin
 
+## 0.7.0
+
+### Minor Changes
+
+- The plugin now connects the hosted Stewdio MCP server only. The bundled `stewdio` skill is removed; assistants read authoring documentation with the server's `read_documentation` tool (`overview`, `xml`, and `graphic` topics). Tool names follow the current server: `create_upload` replaces `create_asset_upload`, `list_assets` with `hashes` replaces `get_asset`, and `delete_asset`, Comment Thread tools, and `send_feedback` are available.
+
 ## 0.6.0
 
 ### Minor Changes

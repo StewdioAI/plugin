@@ -1,6 +1,6 @@
 {
   "name": "stewdio",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Create motion graphics, brand assets, and animations with prompts, then refine them with precise controls in Stewdio's visual editor.",
   "author": {
     "name": "Cekura, Inc.",
@@ -10,7 +10,6 @@
   "homepage": "https://www.stewdio.ai",
   "repository": "https://github.com/StewdioAI/plugin",
   "mcpServers": "./.mcp.json",
-  "skills": "./skills/",
   "interface": {
     "displayName": "Stewdio",
     "shortDescription": "Create & edit motion graphics",
@@ -49,19 +48,19 @@
             {
               "description": "Create an editable product launch animation.",
               "prompt": "Create a Stewdio File named Review animation with a 10-second launch animation for Orbit, a task-management app. Use #112233 and #FFFFFF, the headline 'Meet Orbit', and a moving task card.",
-              "tools_triggered": "create_file, read_xml, write_xml, open_stewdio",
+              "tools_triggered": "read_documentation, create_file, read_xml, write_xml, open_stewdio",
               "expected_behavior": "Create the File in the review account's only active organization. If multiple organizations are available, ask which one should own it before creating it. Read its initial content, then create a 10-second composition with Canvas content, editable text and color inputs, and keyframes that animate the task card. Use the supplied brief without requiring external assets. Save the content, return the File name and ID, and call open_stewdio with fileId and the composition nodeId for a read-only preview in supported hosts."
             },
             {
               "description": "Create five brand asset variations from a supplied style brief.",
               "prompt": "Create a Stewdio File named Review brand assets with 5 landing-page brand graphics for Orbit. Use #112233, #FFFFFF, and the Inter font.",
-              "tools_triggered": "create_file, read_xml, write_xml, open_stewdio",
+              "tools_triggered": "read_documentation, create_file, read_xml, write_xml, open_stewdio",
               "expected_behavior": "Resolve the owning organization before creating the File. Read its initial content, then create five distinct editable Canvas graphics using the requested palette and font. Load Inter from a permitted public font source. Preserve the initial Page and expose text and color inputs for later editing. Return the File name and ID and call open_stewdio with only fileId to open it in the editor in supported hosts."
             },
             {
               "description": "Refine an existing product feature animation while preserving unrelated content.",
               "prompt": "In my Stewdio File named Review animation, animate Orbit's task card moving from To do to Done with snappy text overlays. Keep the composition at 10 seconds and change the accent to #FF6600.",
-              "tools_triggered": "list_files, read_xml, write_xml",
+              "tools_triggered": "read_documentation, list_files, read_xml, write_xml",
               "expected_behavior": "Resolve the File by name and ask for clarification if it is ambiguous. Read the target composition subtree and its ETag, then update it using ifMatch. Animate the task card between the two states, add animated text overlays, and set the editable accent color to #FF6600 while retaining the 10-second duration and unrelated content. If the ETag is stale, reread the subtree and reapply the requested changes. Report the saved changes without claiming playback was verified unless it was actually checked."
             },
             {
@@ -88,7 +87,7 @@
         }
       },
       "publication": {
-        "release_notes": "Use open_stewdio for the File library, File editor, and read-only node previews. Update the bundled skill, documentation, and review scenarios for the unified MCP App."
+        "release_notes": "Connect the hosted Stewdio MCP server only. Authoring documentation now comes from the server's read_documentation tool instead of a bundled skill."
       }
     }
   }

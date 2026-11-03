@@ -1,41 +1,42 @@
 # Stewdio
 
-## Using the plugin
-
-Browse, create, inspect, and edit your [Stewdio](https://www.stewdio.ai) Files from
-your assistant. Read and write File XML, author Graphic scripts, and preview nodes
-and Compositions. Assistants that support MCP Apps can also show your File library,
-an editor that saves as you work, and inline node previews.
+This repository is a plugin marketplace with one plugin, `stewdio`. The plugin
+connects your assistant to the hosted [Stewdio](https://www.stewdio.ai) MCP server
+at `https://mcp.stewdio.ai/mcp`. It contains no skills, hooks, or local servers.
 
 ## What you can do
 
-- Find your Files by name, or create a new File.
+- Find your Files and Files shared with you, or create a new File.
 - Inspect a File or any node subtree as XML, then make targeted edits that preserve
   unrelated content.
 - Write and debug Graphic scripts, including drawing, fonts, and File Asset inputs.
+- Discuss Files in Comment Threads and send feedback to the Stewdio team.
 - Open the File library, the File editor, or a node preview in the conversation.
 
-The plugin connects the hosted Stewdio MCP server and bundles the
-[stewdio skill](skills/stewdio/SKILL.md), which teaches your assistant File XML,
-subtree editing, inputs, clips, animations, and Graphic renderer scripts.
+Authoring guidance comes from the server: the `read_documentation` tool returns the
+`overview`, `xml`, and `graphic` topics, so your assistant always reads the
+documentation that matches the live server.
 
 ## Requirements
 
 You need a Stewdio account and an assistant that supports remote MCP servers with
-OAuth sign-in. You can access only your own Files. Creating and editing Files is
-subject to your Stewdio plan. The Stewdio desktop application is not required.
+OAuth sign-in. Creating and editing Files is subject to your Stewdio plan. The
+Stewdio desktop application is not required.
 
 ## Setup
 
-Follow the [installation guide](https://docs.stewdio.ai/installation)
-for Claude, ChatGPT, Codex CLI, and other MCP hosts. It covers installation,
-sign-in, and verification of the plugin's skill and authenticated tools.
-
-For Claude Code, install from the public marketplace:
+For Claude Code, add this marketplace and install the plugin:
 
 ```sh
-claude plugin install stewdio --marketplace StewdioAI/plugin --scope user
+claude plugin marketplace add StewdioAI/plugin
+claude plugin install stewdio@stewdio --scope user
 ```
+
+Then run `/mcp`, select Stewdio, and complete the browser sign-in flow.
+
+For Codex CLI, ChatGPT, and other MCP hosts, follow the
+[installation guide](https://docs.stewdio.ai/installation) to connect the server
+directly.
 
 ## Try it
 
@@ -49,17 +50,20 @@ node subtree and remove omitted descendants, except that nodes marked
 ETag from a read of that same root node; if the File changed, read again before
 reapplying the edit. Edits in the embedded editor save as you work.
 
-| Tool                                   | Purpose                                                                                 |
-| -------------------------------------- | --------------------------------------------------------------------------------------- |
-| `list_assets`, `get_asset`             | Read a File's File Assets separately from node XML.                                     |
-| `create_asset_upload`, `create_assets` | Upload bytes, or add File Assets from other Files, before placing media.                |
-| `rename_asset`                         | Rename a File Asset independently of node history.                                      |
-| `list_files`                           | Search and paginate your Files.                                                         |
-| `create_file`                          | Create a File with an empty canvas.                                                     |
-| `read_xml`                             | Read a File or node subtree as XML.                                                     |
-| `write_xml`                            | Create or update a node subtree using XML.                                              |
-| `open_stewdio`                         | Open the File library, a File editor, or a read-only node preview in an MCP Apps host.  |
-| `get_api_access`                       | Give the embedded app short-lived access to the regular API; available only to the app. |
+| Tool                                                               | Purpose                                                                                 |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `read_documentation`                                               | Read the `overview`, `xml`, or `graphic` authoring documentation.                       |
+| `list_files`                                                       | Search and paginate your Files or Files shared with you.                                |
+| `create_file`                                                      | Create a File with an empty canvas.                                                     |
+| `read_xml`                                                         | Read a File or node subtree as XML.                                                     |
+| `write_xml`                                                        | Create or update a node subtree, or rewrite the File's top-level nodes, using XML.      |
+| `list_assets`                                                      | Read a File's File Assets separately from node XML.                                     |
+| `create_upload`, `create_assets`                                   | Upload bytes, or add File Assets from other Files, before placing media.                |
+| `rename_asset`, `delete_asset`                                     | Rename or remove a File Asset independently of node history.                            |
+| `list_comment_threads`, `create_comment`, `resolve_comment_thread` | Read, start, reply to, and resolve Comment Threads.                                     |
+| `send_feedback`                                                    | Send feedback about Stewdio to the Stewdio team.                                        |
+| `open_stewdio`                                                     | Open the File library, a File editor, or a read-only node preview in an MCP Apps host.  |
+| `get_api_access`                                                   | Give the embedded app short-lived access to the regular API; available only to the app. |
 
 `open_stewdio` selects its destination from the supplied IDs:
 
@@ -69,22 +73,14 @@ reapplying the edit. Edits in the embedded editor save as you work.
 | `{ fileId }`         | Existing File in the editor.                       |
 | `{ fileId, nodeId }` | Read-only preview of the node and its descendants. |
 
-Library calls accept `query`, `limit`, and `cursor`, just like
-`list_files`. Both search File names without regard to case and return up to 100
-Files per page, most recently updated first. Library filters and pagination
-cannot be combined with `fileId`; `nodeId` requires `fileId`.
-
-All three destinations use one MCP App resource, `ui://stewdio/app.html`.
 Library/editor launches request fullscreen where supported; node previews prefer
 inline. The host controls presentation, and expanding a preview does not enable
-editing. Call `open_stewdio` with only `fileId`, or select **Open in Stewdio** in
-the preview, to enter the editor. Opening any view does not create a File or
-change its contents; edits in the editor save to the existing File.
+editing. Opening any view does not create a File or change its contents.
 
 ## Execution, network access, and data
 
-The plugin bundles one skill and configures a remote server; it installs no
-local server, hooks, scripts, or package dependencies. Your host sends tool
+The plugin configures a remote server only; it installs no skills, local
+server, hooks, scripts, or package dependencies. Your host sends tool
 arguments and OAuth credentials to `https://mcp.stewdio.ai/mcp`. Arguments can
 include File and node IDs, File names, XML, and Graphic scripts. The server
 returns File metadata, requested File content, and UI resources to the host. File
@@ -134,16 +130,9 @@ private File content from support reports.
 
 ## Releases
 
-This repository contains generated release files. Plugin development, tests, and
-release tooling live in `apps/plugin` in the Stewdio monorepo. Changes made here
-are replaced by the next published release; report issues here for the Stewdio
-maintainers to address in the source repository.
-
-Versioned ZIPs are attached to [GitHub Releases](https://github.com/StewdioAI/plugin/releases).
-Each monorepo release includes the plugin ZIP and a `release.json` receipt identifying its
-source commit and artifact checksums. The same release supplies the files in this
-repository for Git-based installation and the ZIP for OpenAI directory submission.
-Publishing these files does not by itself publish either directory listing.
+This repository is maintained by hand. Authoring documentation is served by
+the MCP server, so server updates reach you without updating the
+plugin. Plugin versions change only when the marketplace or manifests change.
 
 ## License
 
